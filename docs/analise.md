@@ -48,9 +48,9 @@ Comida boa é descartada por estabelecimentos enquanto ONGs precisam dela, mas a
 
 ## Critérios de aceite (exemplos)
 
--   **H1:** Dado que publico uma doação, quando salvo, então tipo/quantidade/janela são obrigatórios; doação aceita some da lista.
--   **H3:** Dado um filtro por tipo, quando aplico, então só aparecem doações desse tipo.
--   **H4:** Dado que cancelo uma coleta aceita, quando confirmo, então a doação volta a ficar disponível (se dentro do prazo) e o estabelecimento é notificado.
+-   **H1:** Dado que um estabelecimento publica uma doação, quando salva a publicação, então tipo, quantidade e janela de retirada devem estar preenchidos e, quando uma ONG a aceita, ela deixa de aparecer para as demais ONGs.
+-   **H3:** Dado que existem doações disponíveis de tipos diferentes, quando a ONG aplica um filtro por tipo, então ela vê somente doações do tipo escolhido.
+-   **H4:** Dado que uma ONG cancelou uma coleta aceita, quando confirma o cancelamento dentro do prazo de validade, então a doação volta a ficar disponível e o estabelecimento é notificado.
 -   **H5a/b/c:** vencimento expira → status "vencida"; ONG não comparece → volta a ficar disponível; cancelamento manual → motivo registrado no histórico.
 
 ## Riscos
@@ -63,7 +63,11 @@ Comida boa é descartada por estabelecimentos enquanto ONGs precisam dela, mas a
 
 ## Hipótese e experimento
 
-**Hipótese:** publicação rápida + notificação imediata reduz o tempo médio entre disponibilidade e coleta, reduzindo o desperdício. **Experimento:** piloto de 2–3 semanas em um bairro, com grupo pré-recrutado. Medir tempo médio de coleta, % de doações expiradas e refeições entregues vs. período via WhatsApp.
+**Hipótese:** publicação rápida + notificação imediata reduz o tempo médio entre disponibilidade e coleta, reduzindo o desperdício.
+
+**Experimento:** piloto de 3 semanas em um bairro, com estabelecimentos e ONGs pré-recrutados. Para cada doação, registrar horário de publicação, primeiro aceite, coleta e validade; também registrar quantidade de doações publicadas, expiradas e refeições estimadas. Comparar os resultados com as 3 semanas anteriores de coordenação via WhatsApp.
+
+**Métrica de sucesso:** reduzir em pelo menos 30% o tempo médio entre publicação e coleta e manter abaixo de 15% a proporção de doações expiradas. Como métrica complementar, comparar o número de refeições entregues nos dois períodos.
 
 ## Decisão de análise
 
