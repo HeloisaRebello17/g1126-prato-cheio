@@ -1,77 +1,410 @@
 <!doctype html>
 <html lang="pt-BR">
+
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Prato Cheio</title>
+
   <style>
-    body { font-family: system-ui, sans-serif; margin: 0; padding: 1rem; max-width: 40rem; }
-    h1 { font-size: 1.3rem; }
-    fieldset { border: 1px solid #ccc; border-radius: .5rem; margin-bottom: 1rem; }
-    label { display: block; margin: .5rem 0 .2rem; font-size: .9rem; }
-    input, button { font-size: 1rem; padding: .6rem; width: 100%; box-sizing: border-box; }
-    button { margin-top: .8rem; cursor: pointer; }
-    li { border: 1px solid #ddd; border-radius: .5rem; padding: .6rem; margin-bottom: .5rem; list-style: none; }
-    ul { padding: 0; }
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 0;
+      padding: 2rem 1rem;
+      background: #f4f7f4;
+      color: #26332a;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+
+    .cabecalho {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #dce8de;
+    }
+
+    .cabecalho h1 {
+      margin: 0;
+      color: #2e7d32;
+      font-size: 2rem;
+    }
+
+    .seletor-usuario {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .seletor-usuario label {
+      margin: 0;
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
+
+    .seletor-usuario select {
+      width: auto;
+      min-width: 120px;
+    }
+
+    fieldset {
+      border: none;
+      border-radius: 12px;
+      margin: 0;
+      padding: 1.5rem;
+      background: #ffffff;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    legend {
+      padding: 0 0.5rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #2e7d32;
+    }
+
+    label {
+      display: block;
+      margin: 1rem 0 0.4rem;
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
+
+    input,
+    select,
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 1rem;
+    }
+
+    input,
+    select {
+      border: 1px solid #cbd5cc;
+      background: #ffffff;
+      color: #26332a;
+    }
+
+    input::placeholder {
+      color: #9aa49c;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: #43a047;
+      box-shadow: 0 0 0 3px rgba(67, 160, 71, 0.15);
+    }
+
+    button {
+      margin-top: 1rem;
+      border: none;
+      background: #43a047;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      background: #2e7d32;
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+
+    #doacoesDisponiveis {
+      display: none;
+    }
+
+    #doacoesDisponiveis h2 {
+      margin: 0 0 1rem;
+      color: #2e7d32;
+      font-size: 1.4rem;
+    }
+
+    ul {
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+
+      padding: 1rem;
+      margin-bottom: 0.8rem;
+
+      list-style: none;
+      border-radius: 10px;
+      background: #ffffff;
+
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+    }
+
+    li button {
+      width: auto;
+      min-width: 100px;
+      margin: 0;
+      padding: 0.6rem 1rem;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem;
+      }
+
+      .cabecalho {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .cabecalho h1 {
+        text-align: center;
+        font-size: 1.8rem;
+      }
+
+      .seletor-usuario {
+        justify-content: space-between;
+      }
+
+      .seletor-usuario select {
+        min-width: 130px;
+      }
+
+      fieldset {
+        padding: 1.2rem;
+      }
+
+      li {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      li button {
+        width: 100%;
+      }
+    }
   </style>
+
 </head>
+
 <body>
-  <h1>Prato Cheio</h1>
+  <div class="container">
 
-  <fieldset>
-    <legend>Publicar doação</legend>
-    <label for="tipo">Tipo de alimento</label>
-    <input id="tipo" placeholder="Ex.: sopa, pão, frutas">
-    <label for="quantidade">Quantidade</label>
-    <input id="quantidade" placeholder="Ex.: 10 porções">
-    <label for="validade">Validade / retirar até</label>
-    <input id="validade" type="date">
-    <button id="publicar">Publicar</button>
-  </fieldset>
+    <header class="cabecalho">
+      <h1>Prato Cheio</h1>
 
-  <h2>Doações disponíveis</h2>
-  <ul id="lista"></ul>
+      <div class="seletor-usuario">
+        <label for="tipoUsuario">Usuário:</label>
+
+        <select id="tipoUsuario" name="tipoUsuario">
+          <option value="doador">Doador</option>
+          <option value="ong">ONG</option>
+        </select>
+      </div>
+    </header>
+
+
+    <div id="areaDoador">
+
+      <fieldset>
+        <legend>Publicar doação</legend>
+
+        <label for="tipoAlimento">
+          Tipo de alimento
+        </label>
+
+        <input id="tipoAlimento" type="text" placeholder="Ex.: sopa, pão, frutas" />
+
+        <label for="quantidade">
+          Quantidade
+        </label>
+
+        <input id="quantidade" type="text" placeholder="Ex.: 10 porções" />
+
+        <label for="validade">
+          Validade / retirar até
+        </label>
+
+        <input id="validade" type="date" />
+
+        <button id="publicar">
+          Publicar doação
+        </button>
+
+      </fieldset>
+
+    </div>
+
+    <div id="doacoesDisponiveis">
+
+      <h2>Doações disponíveis</h2>
+
+      <ul id="lista"></ul>
+
+    </div>
+
+  </div>
 
   <script>
-    async function carregar() {
-      const res = await fetch('/api/doacoes');
-      const doacoes = await res.json();
-      const lista = document.getElementById('lista');
-      lista.innerHTML = doacoes.length
-        ? ''
-        : '<li>Nenhuma doação disponível.</li>';
-      for (const d of doacoes) {
-        const li = document.createElement('li');
-        li.textContent = `${d.tipo} — ${d.quantidade} (até ${d.validade}) `;
-        const botao = document.createElement('button');
-        botao.textContent = 'Aceitar';
-        botao.onclick = async () => {
-          await fetch(`/api/doacoes/${d.id}/aceitar`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ong: 'Minha ONG' })
-          });
-          carregar();
-        };
-        li.appendChild(botao);
-        lista.appendChild(li);
+    const tipoUsuario = document.getElementById("tipoUsuario");
+    const areaDoador = document.getElementById("areaDoador");
+    const doacoesDisponiveis = document.getElementById(
+      "doacoesDisponiveis"
+    );
+
+    function atualizarTela() {
+      if (tipoUsuario.value === "ong") {
+        areaDoador.style.display = "none";
+        doacoesDisponiveis.style.display = "block";
+
+        carregar();
+      } else {
+        areaDoador.style.display = "block";
+        doacoesDisponiveis.style.display = "none";
       }
     }
 
-    document.getElementById('publicar').onclick = async () => {
-      await fetch('/api/doacoes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tipo: document.getElementById('tipo').value,
-          quantidade: document.getElementById('quantidade').value,
-          validade: document.getElementById('validade').value
-        })
-      });
-      carregar();
-    };
+    tipoUsuario.addEventListener("change", atualizarTela);
 
-    carregar();
+    async function carregar() {
+      try {
+        const res = await fetch("/api/doacoes");
+
+        const doacoes = await res.json();
+
+        const lista = document.getElementById("lista");
+
+        lista.innerHTML = doacoes.length
+          ? ""
+          : "<li>Nenhuma doação disponível.</li>";
+
+        for (const d of doacoes) {
+
+          const li = document.createElement("li");
+
+          li.textContent =
+            `${d.tipo} — ${d.quantidade} (até ${d.validade})`;
+
+          const botao = document.createElement("button");
+
+          botao.textContent = "Aceitar";
+
+          botao.onclick = async () => {
+
+            await fetch(
+              `/api/doacoes/${d.id}/aceitar`,
+              {
+                method: "POST",
+
+                headers: {
+                  "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                  ong: "Minha ONG"
+                })
+              }
+            );
+
+            carregar();
+          };
+
+          li.appendChild(botao);
+
+          lista.appendChild(li);
+        }
+
+      } catch (erro) {
+
+        console.error(
+          "Erro ao carregar doações:",
+          erro
+        );
+
+      }
+    }
+
+    document.getElementById("publicar").onclick =
+      async () => {
+
+        try {
+
+          await fetch(
+            "/api/doacoes",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type": "application/json"
+              },
+
+              body: JSON.stringify({
+
+                tipo:
+                  document.getElementById(
+                    "tipoAlimento"
+                  ).value,
+
+                quantidade:
+                  document.getElementById(
+                    "quantidade"
+                  ).value,
+
+                validade:
+                  document.getElementById(
+                    "validade"
+                  ).value
+
+              })
+            }
+          );
+
+          document.getElementById(
+            "tipoAlimento"
+          ).value = "";
+
+          document.getElementById(
+            "quantidade"
+          ).value = "";
+
+          document.getElementById(
+            "validade"
+          ).value = "";
+
+        } catch (erro) {
+
+          console.error(
+            "Erro ao publicar doação:",
+            erro
+          );
+
+        }
+      };
+
+    atualizarTela();
   </script>
+
 </body>
+
 </html>
