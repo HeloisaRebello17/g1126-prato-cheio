@@ -22,7 +22,7 @@ Requisito: **Node.js 22.13 ou superior**. Mais nada — o banco da Unidade 1 é 
 ```bash
 npm install       # só na primeira vez
 npm run db:migrar # cria o schema (arquivo dados.sqlite)
-npm start         # sobe em http://localhost:3000
+npm start         # sobe em http://localhost:3001
 npm test          # roda os testes
 npm run dev       # sobe recarregando a cada alteração
 ```
