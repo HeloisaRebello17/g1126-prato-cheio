@@ -264,6 +264,7 @@
 
     </div>
 
+    <p id="mensagemErro" role="alert"></p>
   </div>
 
   <script>
@@ -272,6 +273,12 @@
     const doacoesDisponiveis = document.getElementById(
       "doacoesDisponiveis"
     );
+
+    function mostrarErro(mensagem) {
+      const elemento = document.getElementById("mensagemErro");
+      elemento.textContent = mensagem;
+      elemento.style.color = "red";
+    }
 
     function atualizarTela() {
       if (tipoUsuario.value === "ong") {
@@ -311,22 +318,24 @@
           botao.textContent = "Aceitar";
 
           botao.onclick = async () => {
+            const res = await fetch(`/api/doacoes/${d.id}/aceitar`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                ong: "Minha ONG"
+              })
+            });
 
-            await fetch(
-              `/api/doacoes/${d.id}/aceitar`,
-              {
-                method: "POST",
+            const dados = await res.json();
 
-                headers: {
-                  "Content-Type": "application/json"
-                },
+            if (!res.ok) {
+              mostrarErro(dados.erro);
+              return;
+            }
 
-                body: JSON.stringify({
-                  ong: "Minha ONG"
-                })
-              }
-            );
-
+            document.getElementById("mensagemErro").textContent = "";
             carregar();
           };
 

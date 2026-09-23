@@ -1,7 +1,7 @@
 import { criarApp } from './app.js';
 import { migrar } from './db.js';
 
-const porta = process.env.PORT || 3000;
+const porta = process.env.PORT || 3001;
 
 await migrar();
 console.log('banco pronto');
