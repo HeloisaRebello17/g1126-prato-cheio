@@ -246,7 +246,14 @@
           Validade / retirar até
         </label>
 
-        <input id="validade" type="date" />
+        <input
+          id="validade"
+          type="text"
+          inputmode="numeric"
+          placeholder="dd/mm/aaaa"
+          aria-describedby="validade-erro"
+        />
+        <small id="validade-erro" style="color: #b00020; display: block; min-height: 1.2em;"></small>
 
         <button id="publicar">
           Publicar doação
@@ -301,10 +308,17 @@
 
         for (const d of doacoes) {
 
+          const dataParaExibir = d.validade.includes("/")
+            ? d.validade
+            : (() => {
+                const [ano, mes, dia] = d.validade.split("-");
+                return `${dia}/${mes}/${ano}`;
+              })();
+
           const li = document.createElement("li");
 
           li.textContent =
-            `${d.tipo} — ${d.quantidade} (até ${d.validade})`;
+            `${d.tipo} — ${d.quantidade} (até ${dataParaExibir})`;
 
           const botao = document.createElement("button");
 
@@ -345,12 +359,62 @@
       }
     }
 
+    function validarDataValidade(data) {
+      if (!data) return "Informe a data de validade.";
+      if (!/^\d{2}\/\d{2}\/\d{4}$/.test(data)) {
+        return "Use o formato dd/mm/aaaa.";
+      }
+
+      const [dia, mes, ano] = data.split("/").map(Number);
+      const dataValidade = new Date(ano, mes - 1, dia);
+      const hoje = new Date();
+      const inicioHoje = new Date(
+        hoje.getFullYear(),
+        hoje.getMonth(),
+        hoje.getDate()
+      );
+
+      if (
+        dataValidade.getFullYear() !== ano ||
+        dataValidade.getMonth() !== mes - 1 ||
+        dataValidade.getDate() !== dia ||
+        dataValidade < inicioHoje
+      ) {
+        return "A validade não pode ser anterior à data de hoje.";
+      }
+
+      return "";
+    }
+
+    const campoValidade = document.getElementById("validade");
+    const erroValidade = document.getElementById("validade-erro");
+
+    campoValidade.addEventListener("input", () => {
+      const mensagem = validarDataValidade(campoValidade.value);
+      erroValidade.textContent = mensagem === "Informe a data de validade." ? "" : mensagem;
+      campoValidade.setCustomValidity(mensagem || "");
+    });
+
     document.getElementById("publicar").onclick =
       async () => {
 
-        try {
+        const tipo = document.getElementById("tipoAlimento").value;
+        const quantidade = document.getElementById("quantidade").value;
+        const validade = document.getElementById("validade").value;
+        const erroValidade = validarDataValidade(validade);
 
-          await fetch(
+        if (!tipo || !quantidade || !validade) {
+          alert("Tipo, quantidade e validade são obrigatórios.");
+          return;
+        }
+
+        if (erroValidade) {
+          alert(erroValidade);
+          return;
+        }
+
+        try {
+          const res = await fetch(
             "/api/doacoes",
             {
               method: "POST",
@@ -360,45 +424,25 @@
               },
 
               body: JSON.stringify({
-
-                tipo:
-                  document.getElementById(
-                    "tipoAlimento"
-                  ).value,
-
-                quantidade:
-                  document.getElementById(
-                    "quantidade"
-                  ).value,
-
-                validade:
-                  document.getElementById(
-                    "validade"
-                  ).value
-
+                tipo,
+                quantidade,
+                validade
               })
             }
           );
 
-          document.getElementById(
-            "tipoAlimento"
-          ).value = "";
+          if (!res.ok) {
+            const erro = await res.json().catch(() => ({}));
+            throw new Error(erro.erro || "Erro ao publicar doação.");
+          }
 
-          document.getElementById(
-            "quantidade"
-          ).value = "";
-
-          document.getElementById(
-            "validade"
-          ).value = "";
+          document.getElementById("tipoAlimento").value = "";
+          document.getElementById("quantidade").value = "";
+          document.getElementById("validade").value = "";
 
         } catch (erro) {
-
-          console.error(
-            "Erro ao publicar doação:",
-            erro
-          );
-
+          alert(erro.message);
+          console.error("Erro ao publicar doação:", erro);
         }
       };
 
