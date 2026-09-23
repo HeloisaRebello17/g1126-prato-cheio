@@ -37,3 +37,14 @@ export async function aceitar(id, ong) {
   );
   return rows[0];
 }
+
+export async function buscarAceitaPorOng(ong) {
+  const { rows } = await query(
+    `SELECT * FROM doacoes
+     WHERE ong = ? AND status = 'aceita'
+     LIMIT 1`,
+    [ong]
+  );
+
+  return rows[0];
+}

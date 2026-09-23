@@ -15,10 +15,8 @@ describe('a aplicação sobe', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Os testes abaixo usam o banco — que na Unidade 1 é SQLite em memória:
 // nada a instalar, nada a subir.
-// ---------------------------------------------------------------------------
 
 describe('publicar e listar doações', () => {
   it('mostra a doação publicada na lista de disponíveis', async () => {
@@ -69,7 +67,7 @@ describe('aceitar uma doação', () => {
     const res = await request(app).get('/api/doacoes');
     expect(res.body).toHaveLength(0);
   });
-
+  
   it('recusa aceitar uma doação que já foi aceita por outra ONG', async () => {
     const id = await publicar();
     await request(app).post(`/api/doacoes/${id}/aceitar`).send({ ong: 'ONG A' });
