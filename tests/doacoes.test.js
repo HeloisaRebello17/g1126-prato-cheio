@@ -18,11 +18,20 @@ describe('a aplicação sobe', () => {
 // Os testes abaixo usam o banco — que na Unidade 1 é SQLite em memória:
 // nada a instalar, nada a subir.
 
+function dataFuturaEmDias(dias) {
+  const data = new Date();
+  data.setDate(data.getDate() + dias);
+  const dia = String(data.getDate()).padStart(2, '0');
+  const mes = String(data.getMonth() + 1).padStart(2, '0');
+  const ano = data.getFullYear();
+  return `${dia}/${mes}/${ano}`;
+}
+
 describe('publicar e listar doações', () => {
   it('mostra a doação publicada na lista de disponíveis', async () => {
     await request(app)
       .post('/api/doacoes')
-      .send({ tipo: 'Sopa', quantidade: '10 porções', validade: '2026-08-01' })
+      .send({ tipo: 'Sopa', quantidade: '10 porções', validade: dataFuturaEmDias(10) })
       .expect(201);
 
     const res = await request(app).get('/api/doacoes');
@@ -39,13 +48,22 @@ describe('publicar e listar doações', () => {
     expect(res.status).toBe(400);
     expect(res.body.erro).toMatch(/obrigatórios/);
   });
+
+  it('recusa doação com validade anterior à data de hoje', async () => {
+    const res = await request(app)
+      .post('/api/doacoes')
+      .send({ tipo: 'Sopa', quantidade: '10 porções', validade: dataFuturaEmDias(-1) });
+
+    expect(res.status).toBe(400);
+    expect(res.body.erro).toMatch(/anterior.*hoje|hoje.*anterior/i);
+  });
 });
 
 describe('aceitar uma doação', () => {
   async function publicar() {
     const res = await request(app)
       .post('/api/doacoes')
-      .send({ tipo: 'Arroz', quantidade: '5 kg', validade: '2026-08-02' });
+      .send({ tipo: 'Arroz', quantidade: '5 kg', validade: dataFuturaEmDias(5) });
     return res.body.id;
   }
 
