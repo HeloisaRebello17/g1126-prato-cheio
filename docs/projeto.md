@@ -22,7 +22,8 @@ Decisão detalhada: **#2 — como evitar que duas ONGs aceitem a mesma doação 
 | **Escolha** | **Selecionada** — atende a regra de negócio sem custo extra e não quebra ao trocar para PostgreSQL | Descartada para o piloto; reconsiderar se o volume de disputas pela mesma doação crescer |
 
 ## Diagramas
-(contexto + dados ou componentes — em `docs/` ou como imagem)
+Ver [`docs/diagramas.md`](diagramas.md): contexto, fluxo principal com pontos de falha, estados da doação,
+componentes e modelo de dados — este último confrontado com o schema real de `src/db.js`.
 
 ## ADRs
 Ver `docs/adr/`.
