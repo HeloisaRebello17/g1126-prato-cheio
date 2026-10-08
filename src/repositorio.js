@@ -38,6 +38,15 @@ export async function aceitar(id, ong) {
   return rows[0];
 }
 
+export async function marcarVencida(id) {
+  await query(
+    `UPDATE doacoes
+     SET status = 'vencida'
+     WHERE id = ? AND status = 'disponivel'`,
+    [id]
+  );
+}
+
 export async function buscarAceitaPorOng(ong) {
   const { rows } = await query(
     `SELECT * FROM doacoes

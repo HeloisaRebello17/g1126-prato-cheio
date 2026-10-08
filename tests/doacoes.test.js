@@ -1,7 +1,7 @@
 import { afterAll, beforeEach, describe, it, expect } from 'vitest';
 import request from 'supertest';
 import { criarApp } from '../src/app.js';
-import { migrar, limparBanco, encerrar } from '../src/db.js';
+import { migrar, limparBanco, encerrar, query } from '../src/db.js';
 
 const app = criarApp();
 
@@ -95,6 +95,54 @@ describe('aceitar uma doação', () => {
       .send({ ong: 'ONG B' });
     expect(res.status).toBe(400);
     expect(res.body.erro).toMatch(/já foi aceita/);
+  });
+});
+
+// H5a — doação vencida sai da lista.
+// A API não deixa publicar com validade no passado, então a doação é inserida
+// direto no banco: simula uma doação publicada antes e que venceu sem ser aceita.
+describe('doação vencida', () => {
+  async function inserirVencida() {
+    const { rows } = await query(
+      'INSERT INTO doacoes (tipo, quantidade, validade) VALUES (?, ?, ?) RETURNING *',
+      ['Pão', '20 unidades', dataFuturaEmDias(-1)]
+    );
+    return rows[0].id;
+  }
+
+  it('não aparece na lista de disponíveis', async () => {
+    await inserirVencida();
+    const res = await request(app).get('/api/doacoes');
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(0);
+  });
+
+  it('fica registrada com status "vencida"', async () => {
+    const id = await inserirVencida();
+    await request(app).get('/api/doacoes');
+
+    const { rows } = await query('SELECT status FROM doacoes WHERE id = ?', [id]);
+    expect(rows[0].status).toBe('vencida');
+  });
+
+  it('não pode ser aceita por uma ONG', async () => {
+    const id = await inserirVencida();
+    const res = await request(app)
+      .post(`/api/doacoes/${id}/aceitar`)
+      .send({ ong: 'ONG A' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.erro).toMatch(/vencida/);
+  });
+
+  it('continua disponível no último dia da validade', async () => {
+    await request(app)
+      .post('/api/doacoes')
+      .send({ tipo: 'Sopa', quantidade: '10 porções', validade: dataFuturaEmDias(0) })
+      .expect(201);
+
+    const res = await request(app).get('/api/doacoes');
+    expect(res.body).toHaveLength(1);
   });
 });
 

@@ -76,7 +76,7 @@ sequenceDiagram
 
     Note over S,V: ⚠️ Daqui para baixo ainda não existe no código
     V-->>S: confirma coleta → "coletada"
-    Note over S: ⚠️ Ninguém aceitou até a validade → deveria virar "vencida"
+    Note over S: Ninguém aceitou até a validade → vira "vencida" e some da lista (H5a)
 ```
 
 **Onde pode falhar** (o "modelo honesto" da aula):
@@ -85,7 +85,7 @@ sequenceDiagram
 |---|---|---|
 | 1 | Doação sem tipo/quantidade/validade, ou com validade no passado | ✅ `criarDoacao` recusa |
 | 9–10 | Duas ONGs aceitam ao mesmo tempo | ✅ `UPDATE ... WHERE status = 'disponivel'` (decisão #2 do `projeto.md`) |
-| — | Doação vence sem ninguém aceitar e continua aparecendo na lista | ❌ não tratado → história nova (H5a) |
+| — | Doação vence sem ninguém aceitar e continua aparecendo na lista | ✅ H5a: some da lista, vira `vencida` e não pode ser aceita |
 | — | ONG aceita e não aparece para coletar | ❌ não tratado (H5b) |
 | — | Coleta não é registrada → não dá para medir "publicação → coleta" | ❌ não tratado |
 
@@ -115,7 +115,7 @@ stateDiagram-v2
 |---|---|
 | `disponivel` | ✅ valor padrão da coluna `status` |
 | `aceita` | ✅ gravado por `repositorio.aceitar` |
-| `vencida` | ❌ nenhum código grava esse valor |
+| `vencida` | ✅ gravado por `repositorio.marcarVencida` (H5a) — só a partir de `disponivel`; `aceita → vencida` ainda não |
 | `coletada` | ❌ nenhum código grava esse valor |
 
 ---
@@ -213,7 +213,7 @@ ainda não existe ou virou texto solto.
 |---|---|---|---|---|
 | 1 | ONG é uma **entidade** ligada à doação | `ong TEXT` (nome livre). O front manda sempre `"Minha ONG"` e a rota usa `'ONG'` se vier vazio | "ONG Esperança" e "ong esperança" viram ONGs diferentes; não há como listar "minhas doações aceitas" de forma confiável | Criar tabela `ongs` + `ong_id` (junto com login/identificação, em história própria) |
 | 2 | Doação **pertence a um estabelecimento** | Não existe coluna de autor | Impossível cumprir o critério de H4 ("o estabelecimento é notificado") ou mostrar ao doador as próprias doações | Criar `estabelecimentos` + `estabelecimento_id` |
-| 3 | Estados `disponivel → aceita → coletada / vencida` | `status TEXT` sem `CHECK`; só `disponivel` e `aceita` são gravados | O fluxo da aula (*publica → aparece → aceita → **coleta***) para em "aceita"; doação vencida continua aparecendo como disponível | **Resolvido parcialmente pela história nova** (status `vencida`, ver abaixo); `coletada` fica para a próxima |
+| 3 | Estados `disponivel → aceita → coletada / vencida` | `status TEXT` sem `CHECK`; antes só `disponivel` e `aceita` eram gravados | O fluxo da aula (*publica → aparece → aceita → **coleta***) para em "aceita"; doação vencida continuava aparecendo como disponível | **Resolvido parcialmente pela H5a** (status `vencida`, sem mudar o schema); `coletada` fica para a próxima |
 | 4 | **Janela** de retirada com data comparável | `validade TEXT` no formato `dd/mm/aaaa` | Não dá para ordenar nem comparar no SQL (`'01/12/2026' < '31/01/2026'` como texto). O front ainda trata `aaaa-mm-dd`, sinal de que o formato já mudou uma vez | Na migração para PostgreSQL (U3), trocar para `DATE` e converter na borda (API) |
 | 5 | Medir **tempo entre publicação e coleta** (métrica do experimento em `analise.md`) | Só `criada_em`; não há `aceita_em` nem `coletada_em` | A métrica de sucesso do piloto (−30% no tempo publicação → coleta) **não pode ser calculada** com os dados guardados | Adicionar `aceita_em` e `coletada_em` |
 | 6 | `quantidade` serve para estimar refeições | `quantidade TEXT` livre ("10 porções", "5 kg") | Não dá para somar refeições entregues (métrica complementar) | Separar em `quantidade NUMERIC` + `unidade` quando a métrica for priorizada |
@@ -225,6 +225,25 @@ mais óbvia), mas **o modelo de dados não enxerga o tempo**: não sabe quando a
 nem quando foi aceita ou coletada. É justamente o risco nº 1 da análise ("doação perdida por atraso
 na coleta"). Por isso a história escolhida para evoluir o produto nesta aula é a **H5a — doação
 vencida sai da lista**.
+
+### História nova — H5a: doação vencida sai da lista
+
+> **Como** ONG, **quero** ver só doações que ainda estão dentro da validade **para que** eu não
+> perca uma viagem até um alimento que já não pode ser doado.
+
+**Critérios de aceite** (todos em `tests/doacoes.test.js`, bloco `doação vencida`):
+
+- Dada uma doação disponível cuja validade já passou, quando uma ONG lista as doações, então ela
+  **não aparece** e fica registrada com status **`vencida`**.
+- Dada uma doação vencida, quando uma ONG tenta aceitá-la, então recebe **400 — "doação vencida"**.
+- Dada uma doação cuja validade é **hoje**, quando uma ONG lista, então ela **ainda aparece**
+  (a validade vale até o fim do dia).
+
+**Decisão:** a marcação é feita "preguiçosamente" na hora de listar/aceitar, em `doacoes.js`, em
+vez de um job agendado (alternativa B da decisão #3 do `projeto.md`). Assim não precisa de
+infraestrutura nova, a comparação de datas fica em JavaScript (o `validade` em texto não compara
+no SQL — divergência 4) e nada muda no schema, então a migração para PostgreSQL não é afetada.
+Custo: uma doação vencida que ninguém consulta continua `disponivel` no banco até a próxima listagem.
 
 ---
 
