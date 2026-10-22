@@ -11,7 +11,8 @@
     "db:migrar": "node --no-warnings=ExperimentalWarning -e \"import('./src/db.js').then(async d=>{await d.migrar();console.log('schema criado');await d.encerrar()})\""
   },
   "dependencies": {
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "pg": "^8.13.1"
   },
   "devDependencies": {
     "supertest": "^7.0.0",

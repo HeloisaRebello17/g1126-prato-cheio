@@ -15,8 +15,7 @@ describe('a aplicação sobe', () => {
   });
 });
 
-// Os testes abaixo usam o banco — que na Unidade 1 é SQLite em memória:
-// nada a instalar, nada a subir.
+// Os testes abaixo usam PostgreSQL (DATABASE_URL — ver vitest.config.js e .env.example).
 
 function dataFuturaEmDias(dias) {
   const data = new Date();
