@@ -29,8 +29,179 @@ componentes e modelo de dados — este último confrontado com o schema real de 
 Ver `docs/adr/`.
 
 ## Requisitos não-funcionais
-| Requisito | Como afeta o design |
+
+Os requisitos abaixo foram derivados das restrições, stakeholders e riscos registrados em
+`docs/analise.md`. Cada um é descrito por um **cenário de qualidade** (fonte → estímulo → ambiente →
+resposta → medida), para que seja verificável, e ligado às decisões de projeto que ele motivou.
+
+### Visão geral
+
+| # | Requisito | Categoria (ISO/IEC 25010) | Decisões afetadas | Situação atual |
+|---|---|---|---|---|
+| RNF1 | Uso em celular com internet instável | Eficiência de desempenho · Usabilidade | #3 (aviso e expiração), interface | Parcial: interface leve existe; desempenho ainda não medido |
+| RNF2 | Consistência no aceite de doações | Confiabilidade · Integridade | #2 (concorrência) | Atendido e testado (cenário sequencial) |
+| RNF3 | Custo zero e portabilidade do banco | Portabilidade · Manutenibilidade | #1 (PostgreSQL), arquitetura em camadas | Em execução: migração na branch `migrarBD_Julio` |
+
+---
+
+### RNF1 — Uso em celular com internet instável
+
+**Descrição.** O Prato Cheio deve ser usado pelo navegador do celular, sem instalar aplicativo, e
+continuar utilizável em rede móvel lenta ou que oscila — situação comum de quem está na rua fazendo
+a coleta.
+
+**Origem na Análise.**
+- Restrição de negócio: *mobile web*.
+- Stakeholder *Voluntário de coleta*: espera que "funcione com internet ruim".
+- Risco *Conexão instável trava o uso* (probabilidade média, impacto médio), com mitigação
+  "interface leve, mobile-first".
+
+**Cenário de qualidade.**
+
+| Elemento | Valor |
 |---|---|
+| Fonte | ONG ou voluntário usando o celular |
+| Estímulo | Abre a lista de doações e aceita uma |
+| Ambiente | Rede móvel lenta (perfil "Slow 3G" do DevTools do navegador) |
+| Artefato | `public/index.html` + API `/api/doacoes` |
+| Resposta | A lista aparece e o aceite é confirmado; se a rede falhar, o usuário vê uma mensagem de erro em vez de uma tela travada |
+| Medida (meta) | Página inicial ≤ 50 KB transferidos; lista visível em ≤ 3 s; resposta do aceite em ≤ 2 s |
+
+**Impacto nas decisões de projeto.**
+- **Interface:** página única em HTML, CSS e JavaScript puros (`public/index.html`, ~11 KB), sem
+  framework, sem etapa de build e sem bibliotecas externas carregadas da internet. Usa
+  `meta viewport` para se ajustar à tela do celular. Descartamos um framework SPA (React, Vue)
+  porque aumentaria o tamanho do download e a complexidade sem ganho para uma tela única.
+- **API:** REST com respostas JSON pequenas (apenas os campos da doação) e erros padronizados
+  (`400` + `{ erro }`), que a interface mostra ao usuário em `mostrarErro`.
+- **Decisão #3 (aviso de novas doações):** o RNF1 favorece a alternativa **A — polling**. Ele
+  funciona mesmo quando a conexão cai e volta, porque cada atualização é uma requisição
+  independente. A alternativa B (push/e-mail) exigiria serviço externo e conexão estável para
+  entregar o aviso.
+- **Expiração "preguiçosa" (H5a):** a doação vencida é marcada no momento de listar ou aceitar,
+  em `doacoes.js`, sem job em segundo plano. Assim não há processo extra no servidor nem
+  infraestrutura adicional.
+
+**Trade-offs e riscos.**
+- O polling gera requisições repetidas mesmo sem novidade. Com poucos usuários no piloto, isso é
+  aceitável. Se o volume crescer, o intervalo precisa ser ajustado.
+- Com a expiração preguiçosa, uma doação vencida que ninguém consulta continua `disponivel` no
+  banco até a próxima listagem (já registrado em `docs/diagramas.md`).
+- Hoje a lista só é recarregada quando o usuário age (abre a aba, aceita ou publica). O polling
+  automático ainda **não foi implementado**.
+
+**Como verificar.** Abrir a aplicação no DevTools com o perfil "Slow 3G" e registrar o tamanho
+transferido e o tempo até a lista aparecer. Repetir no celular real de um integrante usando os
+dados móveis.
+
+---
+
+### RNF2 — Consistência no aceite de doações
+
+**Descrição.** Uma doação só pode ser aceita por **uma** ONG. Depois de aceita, ela não pode
+aparecer nem ser aceita por outra, mesmo que duas ONGs tentem ao mesmo tempo.
+
+**Origem na Análise.**
+- Regra de negócio: *doação aceita por uma ONG some para as outras*.
+- Critério de aceite H1: "quando uma ONG a aceita, ela deixa de aparecer para as demais ONGs".
+- Problema central: a coordenação por WhatsApp gera conflito sobre "quem vai buscar". O sistema só
+  resolve esse problema se o aceite for confiável.
+
+**Cenário de qualidade.**
+
+| Elemento | Valor |
+|---|---|
+| Fonte | Duas ONGs diferentes |
+| Estímulo | Ambas enviam `POST /api/doacoes/:id/aceitar` para a mesma doação |
+| Ambiente | Operação normal, com requisições quase simultâneas |
+| Artefato | `doacoes.aceitar` + `repositorio.aceitar` + banco |
+| Resposta | Exatamente uma recebe `200` com status `aceita`; a outra recebe `400 — "doação já foi aceita"` |
+| Medida | 0 doações com mais de uma ONG; 100% das tentativas duplicadas recusadas |
+
+**Impacto nas decisões de projeto.**
+- **Decisão #2:** escolhemos a **verificação otimista** — `UPDATE doacoes SET status = 'aceita',
+  ong = ? WHERE id = ? AND status = 'disponivel' RETURNING *`. Se nenhuma linha volta, a doação
+  já foi aceita e a aplicação recusa. A checagem e a gravação acontecem em **uma única instrução
+  atômica**, então não existe janela entre "ler o status" e "gravar o aceite".
+- **Alternativa descartada:** lock pessimista (`SELECT ... FOR UPDATE`). Ela também garante a
+  consistência, mas exige transação explícita e tratamento de timeout. Além disso, não existe no
+  SQLite, o que quebraria a compatibilidade com a migração (RNF3).
+- **Fonte da verdade no banco:** o campo `status` decide se a doação está disponível. A interface
+  nunca decide isso sozinha; por isso não há aceite "offline" — trade-off consciente com o RNF1.
+- **Separação de responsabilidades:** a regra ("não aceitar se não estiver disponível; não aceitar
+  se vencida") fica em `doacoes.js`, e a garantia atômica fica no SQL de `repositorio.js`.
+
+**Trade-offs e riscos.**
+- A ONG que perde a disputa precisa recarregar a lista e escolher outra doação. Isso é aceitável,
+  porque o erro é claro e imediato.
+- O teste atual faz os dois aceites **em sequência**. No SQLite isso basta, porque as escritas são
+  serializadas. No PostgreSQL, com conexões concorrentes reais, o ideal é acrescentar um teste com
+  as duas requisições disparadas em paralelo (`Promise.all`).
+
+**Como verificar.** Teste automatizado em `tests/doacoes.test.js` ("recusa aceitar uma doação que
+já foi aceita por outra ONG"), executado no CI a cada Pull Request. Na U3, incluir a variante
+paralela.
+
+---
+
+### RNF3 — Custo zero e portabilidade do banco
+
+**Descrição.** O sistema deve funcionar sem custo de infraestrutura e permitir trocar o banco
+(SQLite → PostgreSQL) sem reescrever as regras de negócio nem as rotas.
+
+**Origem na Análise.**
+- Restrições: *orçamento zero*, *equipe pequena*, *poucas semanas*.
+- Exigência da disciplina: banco relacional migrado para PostgreSQL na Unidade 3, acessível por
+  `DATABASE_URL`, com CI verde.
+
+**Cenário de qualidade.**
+
+| Elemento | Valor |
+|---|---|
+| Fonte | Equipe de desenvolvimento |
+| Estímulo | Substituir o SQLite pelo PostgreSQL |
+| Ambiente | Unidade 3, com a suíte de testes existente |
+| Artefato | `src/db.js` (e o SQL de `src/repositorio.js`) |
+| Resposta | A troca fica contida na camada de dados; regras, rotas e interface não mudam |
+| Medida | Custo mensal de infraestrutura = R$ 0; `doacoes.js` e `app.js` sem alteração; mesma quantidade de testes passando antes e depois (hoje 11/11); CI verde com serviço PostgreSQL |
+
+**Impacto nas decisões de projeto.**
+- **Arquitetura em camadas:** `app.js` (rotas) → `doacoes.js` (regras) → `repositorio.js` (SQL) →
+  `db.js` (conexão). Só `db.js` sabe qual banco está em uso e expõe uma interface única,
+  `query(sql, valores)` → `{ rows }`.
+- **Unidades 1 e 2:** SQLite embutido no Node (`node:sqlite`). Não há nada para instalar nem custo,
+  e os testes usam banco em memória.
+- **Decisão #1 (onde rodar o PostgreSQL):** as duas alternativas consideradas — contêiner Docker
+  local ou serviço gerenciado gratuito (Neon/Supabase/Render) — respeitam o custo zero. A conexão é
+  configurada apenas por `DATABASE_URL`, então trocar de uma para a outra não muda o código.
+- **SQL portável:** marcador `?` no repositório, convertido para `$1, $2…` dentro do `db.js` na
+  versão PostgreSQL; nenhum recurso exclusivo de um banco nas regras. Os pontos não portáveis
+  ficam isolados no schema (`AUTOINCREMENT` → `SERIAL`, `datetime('now')` → `now()`).
+- **Testes como rede de segurança:** a mesma suíte roda antes e depois da troca e prova que o
+  comportamento se manteve (evidência exigida em `docs/refatoracoes.md`).
+
+**Trade-offs e riscos.**
+- Serviços gratuitos têm limites de armazenamento e conexões, e podem suspender bancos inativos.
+- O Docker local exige que cada integrante tenha o Docker instalado.
+- A coluna `validade` continua como texto `dd/mm/aaaa` para não mudar o comportamento na migração.
+  Convertê-la para `DATE` fica como refatoração separada.
+
+**Como verificar.** Na branch de migração: rodar `npm test` contra o PostgreSQL, conferir pelo
+diff que `doacoes.js` e `app.js` não mudaram e anexar o link da execução verde do CI.
+
+---
+
+
+
+### Tensões entre os requisitos
+
+| Conflito | Como foi resolvido |
+|---|---|
+| RNF1 × RNF2: rede ruim pediria aceite offline; consistência exige confirmação do servidor | Prioriza RNF2: o aceite sempre passa pelo servidor; a interface mostra erro claro se a rede falhar |
+| RNF1 × RNF3: polling gera mais requisições ao banco | Volume do piloto é baixo; intervalo de atualização ajustável |
+| RNF2 × RNF3: lock pessimista seria mais "forte", mas não é portável | Verificação otimista atende a regra e funciona igual no SQLite e no PostgreSQL |
+
+
 
 ## Critérios de validação do projeto
 
