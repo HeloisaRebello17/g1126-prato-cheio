@@ -1,15 +1,15 @@
-name: Code Quality
+name: Prettier
 
 on:
   push:
   pull_request:
 
 concurrency:
-  group: quality-${{ github.workflow }}-${{ github.ref }}
+  group: prettier-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  lint-and-format:
+  prettier:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,9 +22,6 @@ jobs:
 
       - name: Instalar dependências
         run: npm ci
-
-      - name: Executar ESLint
-        run: npm run lint
 
       - name: Verificar formatação
         run: npm run format:check
