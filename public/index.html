@@ -1,13 +1,12 @@
 <!doctype html>
 <html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prato Cheio</title>
+    <link rel="stylesheet" href="index.css" />
 
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Prato Cheio</title>
-  <link rel="stylesheet" href="index.css" />
-
-  <!--
+    <!--
     * {
       box-sizing: border-box;
     }
@@ -210,331 +209,294 @@
         width: 100%;
       }
     }
-  -->
+  --></head>
 
-</head>
+  <body>
+    <div class="container">
+      <header class="cabecalho">
+        <h1>Prato Cheio</h1>
 
-<body>
-  <div class="container">
+        <div class="seletor-usuario">
+          <label for="tipoUsuario">Usuário:</label>
 
-    <header class="cabecalho">
-      <h1>Prato Cheio</h1>
+          <select id="tipoUsuario" name="tipoUsuario" disabled>
+            <option value="doador">Doador</option>
+            <option value="ong">ONG</option>
+          </select>
+          <button id="sair" type="button">Sair</button>
+        </div>
+      </header>
 
-      <div class="seletor-usuario">
-        <label for="tipoUsuario">Usuário:</label>
+      <div id="areaDoador">
+        <fieldset>
+          <legend>Publicar doação</legend>
 
-        <select id="tipoUsuario" name="tipoUsuario" disabled>
-          <option value="doador">Doador</option>
-          <option value="ong">ONG</option>
-        </select>
-        <button id="sair" type="button">Sair</button>
+          <label for="tipoAlimento"> Tipo de alimento </label>
+
+          <input id="tipoAlimento" type="text" placeholder="Ex.: sopa, pão, frutas" />
+
+          <label for="quantidade"> Quantidade </label>
+
+          <input id="quantidade" type="number" min="0.01" step="any" inputmode="decimal" placeholder="Ex.: 10" />
+
+          <label for="validade"> Validade / retirar até </label>
+
+          <input
+            id="validade"
+            type="text"
+            inputmode="numeric"
+            maxlength="10"
+            placeholder="dd/mm/aaaa"
+            aria-describedby="validade-erro"
+          />
+          <small id="validade-erro" style="color: #b00020; display: block; min-height: 1.2em"></small>
+
+          <button id="publicar">Publicar doação</button>
+        </fieldset>
       </div>
-    </header>
 
+      <div id="doacoesDisponiveis">
+        <h2>Doações disponíveis</h2>
+        <input id="filtroTipo" type="search" placeholder="Filtrar por tipo de alimento" />
 
-    <div id="areaDoador">
+        <ul id="lista"></ul>
 
-      <fieldset>
-        <legend>Publicar doação</legend>
+        <section id="minhasColetas">
+          <h2>Minhas coletas</h2>
+          <ul id="listaColetas"></ul>
+        </section>
+      </div>
 
-        <label for="tipoAlimento">
-          Tipo de alimento
-        </label>
-
-        <input id="tipoAlimento" type="text" placeholder="Ex.: sopa, pão, frutas" />
-
-        <label for="quantidade">
-          Quantidade
-        </label>
-
-        <input id="quantidade" type="number" min="0.01" step="any" inputmode="decimal" placeholder="Ex.: 10" />
-
-        <label for="validade">
-          Validade / retirar até
-        </label>
-
-        <input
-          id="validade"
-          type="text"
-          inputmode="numeric"
-          maxlength="10"
-          placeholder="dd/mm/aaaa"
-          aria-describedby="validade-erro"
-        />
-        <small id="validade-erro" style="color: #b00020; display: block; min-height: 1.2em;"></small>
-
-        <button id="publicar">
-          Publicar doação
-        </button>
-
-      </fieldset>
-
+      <p id="mensagemErro" role="alert"></p>
     </div>
 
-    <div id="doacoesDisponiveis">
+    <script>
+      const token = localStorage.getItem('token');
+      if (!token) window.location.href = 'login.html';
+      const cabecalhoAuth = { Authorization: `Bearer ${token}` };
+      const tipoUsuario = document.getElementById('tipoUsuario');
+      const areaDoador = document.getElementById('areaDoador');
+      const doacoesDisponiveis = document.getElementById('doacoesDisponiveis');
+      const filtroTipo = document.getElementById('filtroTipo');
+      const minhasColetas = document.getElementById('minhasColetas');
+      let intervaloAtualizacao;
+      let coletasLocais = [];
 
-      <h2>Doações disponíveis</h2>
-      <input id="filtroTipo" type="search" placeholder="Filtrar por tipo de alimento" />
+      function mostrarErro(mensagem) {
+        const elemento = document.getElementById('mensagemErro');
+        elemento.textContent = mensagem;
+        elemento.style.color = 'red';
+      }
 
-      <ul id="lista"></ul>
-
-      <section id="minhasColetas">
-        <h2>Minhas coletas</h2>
-        <ul id="listaColetas"></ul>
-      </section>
-
-    </div>
-
-    <p id="mensagemErro" role="alert"></p>
-  </div>
-
-  <script>
-    const token = localStorage.getItem("token");
-    if (!token) window.location.href = "login.html";
-    const cabecalhoAuth = { Authorization: `Bearer ${token}` };
-    const tipoUsuario = document.getElementById("tipoUsuario");
-    const areaDoador = document.getElementById("areaDoador");
-    const doacoesDisponiveis = document.getElementById(
-      "doacoesDisponiveis"
-    );
-    const filtroTipo = document.getElementById("filtroTipo");
-    const minhasColetas = document.getElementById("minhasColetas");
-    let intervaloAtualizacao;
-    let coletasLocais = [];
-
-    function mostrarErro(mensagem) {
-      const elemento = document.getElementById("mensagemErro");
-      elemento.textContent = mensagem;
-      elemento.style.color = "red";
-    }
-
-    function atualizarTela() {
-      if (tipoUsuario.value === "ong") {
-        areaDoador.style.display = "none";
-        doacoesDisponiveis.style.display = "block";
-        filtroTipo.style.display = "block";
-        minhasColetas.style.display = "block";
-        carregar();
-        carregarColetas();
-        clearInterval(intervaloAtualizacao);
-        intervaloAtualizacao = setInterval(() => {
+      function atualizarTela() {
+        if (tipoUsuario.value === 'ong') {
+          areaDoador.style.display = 'none';
+          doacoesDisponiveis.style.display = 'block';
+          filtroTipo.style.display = 'block';
+          minhasColetas.style.display = 'block';
           carregar();
           carregarColetas();
-        }, 30000);
-      } else {
-        areaDoador.style.display = "block";
-        doacoesDisponiveis.style.display = "none";
-        filtroTipo.style.display = "none";
-        minhasColetas.style.display = "none";
-        clearInterval(intervaloAtualizacao);
+          clearInterval(intervaloAtualizacao);
+          intervaloAtualizacao = setInterval(() => {
+            carregar();
+            carregarColetas();
+          }, 30000);
+        } else {
+          areaDoador.style.display = 'block';
+          doacoesDisponiveis.style.display = 'none';
+          filtroTipo.style.display = 'none';
+          minhasColetas.style.display = 'none';
+          clearInterval(intervaloAtualizacao);
+        }
       }
-    }
 
-    tipoUsuario.addEventListener("change", atualizarTela);
-    filtroTipo.addEventListener("input", carregar);
+      tipoUsuario.addEventListener('change', atualizarTela);
+      filtroTipo.addEventListener('input', carregar);
 
-    document.getElementById("sair").addEventListener("click", () => {
-      localStorage.removeItem("token");
-      window.location.href = "login.html";
-    });
+      document.getElementById('sair').addEventListener('click', () => {
+        localStorage.removeItem('token');
+        window.location.href = 'login.html';
+      });
 
-    async function inicializarUsuario() {
-      try {
-        const resposta = await fetch("/api/me", { headers: cabecalhoAuth });
-        if (!resposta.ok) throw new Error("sessão expirada");
-        const usuario = await resposta.json();
-        tipoUsuario.value = usuario.perfil;
-        atualizarTela();
-      } catch {
-        localStorage.removeItem("token");
-        window.location.href = "login.html";
+      async function inicializarUsuario() {
+        try {
+          const resposta = await fetch('/api/me', { headers: cabecalhoAuth });
+          if (!resposta.ok) throw new Error('sessão expirada');
+          const usuario = await resposta.json();
+          tipoUsuario.value = usuario.perfil;
+          atualizarTela();
+        } catch {
+          localStorage.removeItem('token');
+          window.location.href = 'login.html';
+        }
       }
-    }
 
-    async function carregar() {
-      try {
-        const params = filtroTipo.value.trim()
-          ? `?tipo=${encodeURIComponent(filtroTipo.value.trim())}`
-          : "";
-        const res = await fetch(`/api/doacoes${params}`, { headers: cabecalhoAuth });
+      async function carregar() {
+        try {
+          const params = filtroTipo.value.trim() ? `?tipo=${encodeURIComponent(filtroTipo.value.trim())}` : '';
+          const res = await fetch(`/api/doacoes${params}`, { headers: cabecalhoAuth });
 
-        const resposta = await res.json();
-        const termo = filtroTipo.value.trim().toLocaleLowerCase("pt-BR");
-        const doacoes = Array.isArray(resposta)
-          ? resposta.filter((doacao) => !termo || doacao.tipo.toLocaleLowerCase("pt-BR").includes(termo))
-          : [];
+          const resposta = await res.json();
+          const termo = filtroTipo.value.trim().toLocaleLowerCase('pt-BR');
+          const doacoes = Array.isArray(resposta)
+            ? resposta.filter((doacao) => !termo || doacao.tipo.toLocaleLowerCase('pt-BR').includes(termo))
+            : [];
 
-        const lista = document.getElementById("lista");
+          const lista = document.getElementById('lista');
 
-        lista.innerHTML = doacoes.length
-          ? ""
-          : "<li>Nenhuma doação disponível.</li>";
+          lista.innerHTML = doacoes.length ? '' : '<li>Nenhuma doação disponível.</li>';
 
-        for (const d of doacoes) {
+          for (const d of doacoes) {
+            const dataParaExibir = d.validade.includes('/')
+              ? d.validade
+              : (() => {
+                  const [ano, mes, dia] = d.validade.split('-');
+                  return `${dia}/${mes}/${ano}`;
+                })();
 
-          const dataParaExibir = d.validade.includes("/")
-            ? d.validade
-            : (() => {
-                const [ano, mes, dia] = d.validade.split("-");
-                return `${dia}/${mes}/${ano}`;
-              })();
+            const li = document.createElement('li');
 
-          const li = document.createElement("li");
+            li.textContent = `${d.tipo} — ${d.quantidade} (até ${dataParaExibir})`;
 
-          li.textContent =
-            `${d.tipo} — ${d.quantidade} (até ${dataParaExibir})`;
+            const botao = document.createElement('button');
 
-          const botao = document.createElement("button");
+            botao.textContent = 'Aceitar';
 
-          botao.textContent = "Aceitar";
+            botao.onclick = async () => {
+              const res = await fetch(`/api/doacoes/${d.id}/aceitar`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  ...cabecalhoAuth
+                },
+                body: JSON.stringify({
+                  ong: 'Minha ONG'
+                })
+              });
 
-          botao.onclick = async () => {
-            const res = await fetch(`/api/doacoes/${d.id}/aceitar`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                ...cabecalhoAuth
-              },
-              body: JSON.stringify({
-                ong: "Minha ONG"
-              })
-            });
+              const dados = await res.json();
 
-            const dados = await res.json();
+              if (!res.ok) {
+                mostrarErro(dados.erro);
+                return;
+              }
 
-            if (!res.ok) {
-              mostrarErro(dados.erro);
-              return;
+              document.getElementById('mensagemErro').textContent = '';
+              coletasLocais = [...coletasLocais.filter((coleta) => coleta.id !== d.id), d];
+              await carregar();
+              await carregarColetas();
+            };
+
+            li.appendChild(botao);
+
+            lista.appendChild(li);
+          }
+        } catch (erro) {
+          console.error('Erro ao carregar doações:', erro);
+        }
+      }
+
+      async function carregarColetas() {
+        let coletas = coletasLocais;
+        try {
+          const res = await fetch('/api/minhas-coletas', { headers: cabecalhoAuth });
+          if (res.ok) {
+            const resposta = await res.json();
+            if (Array.isArray(resposta)) {
+              coletas = resposta;
+              coletasLocais = resposta;
             }
-
-            document.getElementById("mensagemErro").textContent = "";
-            coletasLocais = [...coletasLocais.filter((coleta) => coleta.id !== d.id), d];
-            await carregar();
-            await carregarColetas();
+          }
+        } catch {
+          // Mantém a coleta aceita na tela até o servidor voltar a responder.
+        }
+        const lista = document.getElementById('listaColetas');
+        lista.innerHTML = coletas.length ? '' : '<li>Nenhuma coleta aceita.</li>';
+        for (const coleta of coletas) {
+          const li = document.createElement('li');
+          li.textContent = `${coleta.tipo} — ${coleta.quantidade}`;
+          const botao = document.createElement('button');
+          botao.textContent = 'Cancelar coleta';
+          botao.onclick = async () => {
+            botao.disabled = true;
+            try {
+              const resposta = await fetch(`/api/doacoes/${coleta.id}/cancelar`, {
+                method: 'POST',
+                headers: cabecalhoAuth
+              });
+              const dados = await resposta.json().catch(() => ({}));
+              if (!resposta.ok) {
+                mostrarErro(dados.erro || 'Não foi possível cancelar a coleta.');
+                botao.disabled = false;
+                return;
+              }
+              coletasLocais = coletasLocais.filter((item) => item.id !== coleta.id);
+              document.getElementById('mensagemErro').textContent = '';
+              await carregar();
+              await carregarColetas();
+            } catch {
+              mostrarErro('Não foi possível conectar ao servidor para cancelar a coleta.');
+              botao.disabled = false;
+            }
           };
-
           li.appendChild(botao);
-
           lista.appendChild(li);
         }
-
-      } catch (erro) {
-
-        console.error(
-          "Erro ao carregar doações:",
-          erro
-        );
-
       }
-    }
 
-    async function carregarColetas() {
-      let coletas = coletasLocais;
-      try {
-        const res = await fetch("/api/minhas-coletas", { headers: cabecalhoAuth });
-        if (res.ok) {
-          const resposta = await res.json();
-          if (Array.isArray(resposta)) {
-            coletas = resposta;
-            coletasLocais = resposta;
-          }
+      function validarDataValidade(data) {
+        if (!data) return 'Informe a data de validade.';
+        if (!/^\d{2}\/\d{2}\/\d{4}$/.test(data)) {
+          return 'Use o formato dd/mm/aaaa.';
         }
-      } catch {
-        // Mantém a coleta aceita na tela até o servidor voltar a responder.
-      }
-      const lista = document.getElementById("listaColetas");
-      lista.innerHTML = coletas.length ? "" : "<li>Nenhuma coleta aceita.</li>";
-      for (const coleta of coletas) {
-        const li = document.createElement("li");
-        li.textContent = `${coleta.tipo} — ${coleta.quantidade}`;
-        const botao = document.createElement("button");
-        botao.textContent = "Cancelar coleta";
-        botao.onclick = async () => {
-          botao.disabled = true;
-          try {
-            const resposta = await fetch(`/api/doacoes/${coleta.id}/cancelar`, {
-              method: "POST",
-              headers: cabecalhoAuth
-            });
-            const dados = await resposta.json().catch(() => ({}));
-            if (!resposta.ok) {
-              mostrarErro(dados.erro || "Não foi possível cancelar a coleta.");
-              botao.disabled = false;
-              return;
-            }
-            coletasLocais = coletasLocais.filter((item) => item.id !== coleta.id);
-            document.getElementById("mensagemErro").textContent = "";
-            await carregar();
-            await carregarColetas();
-          } catch {
-            mostrarErro("Não foi possível conectar ao servidor para cancelar a coleta.");
-            botao.disabled = false;
-          }
-        };
-        li.appendChild(botao);
-        lista.appendChild(li);
-      }
-    }
 
-    function validarDataValidade(data) {
-      if (!data) return "Informe a data de validade.";
-      if (!/^\d{2}\/\d{2}\/\d{4}$/.test(data)) {
-        return "Use o formato dd/mm/aaaa.";
+        const [dia, mes, ano] = data.split('/').map(Number);
+        const dataValidade = new Date(ano, mes - 1, dia);
+        const hoje = new Date();
+        const inicioHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+
+        if (
+          dataValidade.getFullYear() !== ano ||
+          dataValidade.getMonth() !== mes - 1 ||
+          dataValidade.getDate() !== dia ||
+          dataValidade < inicioHoje
+        ) {
+          return 'A validade não pode ser anterior à data de hoje.';
+        }
+
+        return '';
       }
 
-      const [dia, mes, ano] = data.split("/").map(Number);
-      const dataValidade = new Date(ano, mes - 1, dia);
-      const hoje = new Date();
-      const inicioHoje = new Date(
-        hoje.getFullYear(),
-        hoje.getMonth(),
-        hoje.getDate()
-      );
+      function formatarDataValidade(value) {
+        const digitos = value.replace(/\D/g, '').slice(0, 8);
 
-      if (
-        dataValidade.getFullYear() !== ano ||
-        dataValidade.getMonth() !== mes - 1 ||
-        dataValidade.getDate() !== dia ||
-        dataValidade < inicioHoje
-      ) {
-        return "A validade não pode ser anterior à data de hoje.";
+        if (digitos.length <= 2) return digitos;
+        if (digitos.length <= 4) return `${digitos.slice(0, 2)}/${digitos.slice(2)}`;
+        return `${digitos.slice(0, 2)}/${digitos.slice(2, 4)}/${digitos.slice(4)}`;
       }
 
-      return "";
-    }
+      const campoValidade = document.getElementById('validade');
+      const erroValidade = document.getElementById('validade-erro');
 
-    function formatarDataValidade(value) {
-      const digitos = value.replace(/\D/g, "").slice(0, 8);
+      campoValidade.addEventListener('input', () => {
+        const formatado = formatarDataValidade(campoValidade.value);
+        if (formatado !== campoValidade.value) {
+          campoValidade.value = formatado;
+        }
 
-      if (digitos.length <= 2) return digitos;
-      if (digitos.length <= 4) return `${digitos.slice(0, 2)}/${digitos.slice(2)}`;
-      return `${digitos.slice(0, 2)}/${digitos.slice(2, 4)}/${digitos.slice(4)}`;
-    }
+        const mensagem = validarDataValidade(campoValidade.value);
+        erroValidade.textContent = mensagem === 'Informe a data de validade.' ? '' : mensagem;
+        campoValidade.setCustomValidity(mensagem || '');
+      });
 
-    const campoValidade = document.getElementById("validade");
-    const erroValidade = document.getElementById("validade-erro");
-
-    campoValidade.addEventListener("input", () => {
-      const formatado = formatarDataValidade(campoValidade.value);
-      if (formatado !== campoValidade.value) {
-        campoValidade.value = formatado;
-      }
-
-      const mensagem = validarDataValidade(campoValidade.value);
-      erroValidade.textContent = mensagem === "Informe a data de validade." ? "" : mensagem;
-      campoValidade.setCustomValidity(mensagem || "");
-    });
-
-    document.getElementById("publicar").onclick =
-      async () => {
-
-        const tipo = document.getElementById("tipoAlimento").value;
-        const quantidade = document.getElementById("quantidade").value;
-        const validade = document.getElementById("validade").value;
+      document.getElementById('publicar').onclick = async () => {
+        const tipo = document.getElementById('tipoAlimento').value;
+        const quantidade = document.getElementById('quantidade').value;
+        const validade = document.getElementById('validade').value;
         const erroValidade = validarDataValidade(validade);
 
         if (!tipo || !quantidade || !validade) {
-          alert("Tipo, quantidade e validade são obrigatórios.");
+          alert('Tipo, quantidade e validade são obrigatórios.');
           return;
         }
 
@@ -544,42 +506,36 @@
         }
 
         try {
-          const res = await fetch(
-            "/api/doacoes",
-            {
-              method: "POST",
+          const res = await fetch('/api/doacoes', {
+            method: 'POST',
 
-              headers: {
-                "Content-Type": "application/json",
-                ...cabecalhoAuth
-              },
+            headers: {
+              'Content-Type': 'application/json',
+              ...cabecalhoAuth
+            },
 
-              body: JSON.stringify({
-                tipo,
-                quantidade,
-                validade
-              })
-            }
-          );
+            body: JSON.stringify({
+              tipo,
+              quantidade,
+              validade
+            })
+          });
 
           if (!res.ok) {
             const erro = await res.json().catch(() => ({}));
-            throw new Error(erro.erro || "Erro ao publicar doação.");
+            throw new Error(erro.erro || 'Erro ao publicar doação.');
           }
 
-          document.getElementById("tipoAlimento").value = "";
-          document.getElementById("quantidade").value = "";
-          document.getElementById("validade").value = "";
-
+          document.getElementById('tipoAlimento').value = '';
+          document.getElementById('quantidade').value = '';
+          document.getElementById('validade').value = '';
         } catch (erro) {
           alert(erro.message);
-          console.error("Erro ao publicar doação:", erro);
+          console.error('Erro ao publicar doação:', erro);
         }
       };
 
-    inicializarUsuario();
-  </script>
-
-</body>
-
+      inicializarUsuario();
+    </script>
+  </body>
 </html>

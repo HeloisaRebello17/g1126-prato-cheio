@@ -31,18 +31,12 @@ export async function inserir({ tipo, quantidade, validade }) {
 export async function listarDisponiveis(tipo) {
   const filtro = typeof tipo === 'string' && tipo.trim() ? ' AND lower(tipo) LIKE lower(?)' : '';
   const valores = filtro ? [`%${tipo.trim()}%`] : [];
-  const { rows } = await query(
-    `SELECT * FROM doacoes WHERE status = 'disponivel'${filtro} ORDER BY id`,
-    valores
-  );
+  const { rows } = await query(`SELECT * FROM doacoes WHERE status = 'disponivel'${filtro} ORDER BY id`, valores);
   return rows;
 }
 
 export async function listarAceitasPorOng(ong) {
-  const { rows } = await query(
-    "SELECT * FROM doacoes WHERE status = 'aceita' AND ong = ? ORDER BY id",
-    [ong]
-  );
+  const { rows } = await query("SELECT * FROM doacoes WHERE status = 'aceita' AND ong = ? ORDER BY id", [ong]);
   return rows;
 }
 

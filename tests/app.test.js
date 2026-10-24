@@ -11,4 +11,6 @@ describe('aplicação', () => {
   });
 });
 
-afterAll(async () => { await encerrar(); });
+afterAll(async () => {
+  await encerrar();
+});

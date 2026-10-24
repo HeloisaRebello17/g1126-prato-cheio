@@ -24,11 +24,7 @@ function validarValidade(validade) {
   const [dia, mes, ano] = validade.split('/').map(Number);
   const dataValidade = paraData(validade);
 
-  if (
-    dataValidade.getFullYear() !== ano ||
-    dataValidade.getMonth() !== mes - 1 ||
-    dataValidade.getDate() !== dia
-  ) {
+  if (dataValidade.getFullYear() !== ano || dataValidade.getMonth() !== mes - 1 || dataValidade.getDate() !== dia) {
     throw new Error('validade deve ser uma data válida');
   }
 
@@ -43,7 +39,11 @@ export async function criarDoacao({ tipo, quantidade, validade }) {
   if (typeof tipo !== 'string' || !tipo.trim() || typeof validade !== 'string' || !validade.trim()) {
     throw new Error('tipo, quantidade e validade são obrigatórios');
   }
-  if (typeof quantidade !== 'string' || !/^\d+(?:[.,]\d+)?$/.test(quantidade.trim()) || Number(quantidade.replace(',', '.')) <= 0) {
+  if (
+    typeof quantidade !== 'string' ||
+    !/^\d+(?:[.,]\d+)?$/.test(quantidade.trim()) ||
+    Number(quantidade.replace(',', '.')) <= 0
+  ) {
     throw new Error('quantidade deve ser um número positivo');
   }
 

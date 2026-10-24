@@ -11,13 +11,19 @@ export function criarApp() {
   app.get('/api/saude', (req, res) => res.json({ ok: true }));
 
   app.post('/api/cadastro', async (req, res) => {
-    try { res.status(201).json(await autenticacao.cadastrar(req.body)); }
-    catch (erro) { res.status(400).json({ erro: erro.message }); }
+    try {
+      res.status(201).json(await autenticacao.cadastrar(req.body));
+    } catch (erro) {
+      res.status(400).json({ erro: erro.message });
+    }
   });
 
   app.post('/api/login', async (req, res) => {
-    try { res.json(await autenticacao.login(req.body)); }
-    catch (erro) { res.status(401).json({ erro: erro.message }); }
+    try {
+      res.json(await autenticacao.login(req.body));
+    } catch (erro) {
+      res.status(401).json({ erro: erro.message });
+    }
   });
 
   app.get('/api/me', autenticacao.autenticar, (req, res) => res.json(req.usuario));

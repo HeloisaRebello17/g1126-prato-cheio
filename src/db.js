@@ -52,5 +52,8 @@ export async function limparBanco() {
 }
 
 export async function encerrar() {
-  if (db) { db.close(); db = undefined; }
+  if (db) {
+    db.close();
+    db = undefined;
+  }
 }

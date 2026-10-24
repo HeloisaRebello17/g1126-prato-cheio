@@ -13,7 +13,10 @@ beforeEach(async () => {
 describe('aceitar uma doação', () => {
   it('marca a doação como aceita pela ONG', async () => {
     const id = await publicar(tokenDoador);
-    const res = await request(app).post(`/api/doacoes/${id}/aceitar`).set('Authorization', `Bearer ${tokenOng}`).send({ ong: 'ONG Esperança' });
+    const res = await request(app)
+      .post(`/api/doacoes/${id}/aceitar`)
+      .set('Authorization', `Bearer ${tokenOng}`)
+      .send({ ong: 'ONG Esperança' });
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('aceita');
     expect(res.body.ong).toBe('ONG');
@@ -21,15 +24,24 @@ describe('aceitar uma doação', () => {
 
   it('remove a doação da lista depois de aceita', async () => {
     const id = await publicar(tokenDoador);
-    await request(app).post(`/api/doacoes/${id}/aceitar`).set('Authorization', `Bearer ${tokenOng}`).send({ ong: 'ONG A' });
+    await request(app)
+      .post(`/api/doacoes/${id}/aceitar`)
+      .set('Authorization', `Bearer ${tokenOng}`)
+      .send({ ong: 'ONG A' });
     const res = await request(app).get('/api/doacoes').set('Authorization', `Bearer ${tokenOng}`);
     expect(res.body).toHaveLength(0);
   });
 
   it('recusa aceitar uma doação já aceita', async () => {
     const id = await publicar(tokenDoador);
-    await request(app).post(`/api/doacoes/${id}/aceitar`).set('Authorization', `Bearer ${tokenOng}`).send({ ong: 'ONG A' });
-    const res = await request(app).post(`/api/doacoes/${id}/aceitar`).set('Authorization', `Bearer ${tokenOng}`).send({ ong: 'ONG B' });
+    await request(app)
+      .post(`/api/doacoes/${id}/aceitar`)
+      .set('Authorization', `Bearer ${tokenOng}`)
+      .send({ ong: 'ONG A' });
+    const res = await request(app)
+      .post(`/api/doacoes/${id}/aceitar`)
+      .set('Authorization', `Bearer ${tokenOng}`)
+      .send({ ong: 'ONG B' });
     expect(res.status).toBe(400);
     expect(res.body.erro).toMatch(/já foi aceita/);
   });
@@ -54,7 +66,9 @@ describe('cancelar coleta', () => {
     await request(app).post(`/api/doacoes/${id}/aceitar`).set('Authorization', `Bearer ${tokenOng}`).expect(200);
     const minhas = await request(app).get('/api/minhas-coletas').set('Authorization', `Bearer ${tokenOng}`);
     expect(minhas.body).toHaveLength(1);
-    const cancelamento = await request(app).post(`/api/doacoes/${id}/cancelar`).set('Authorization', `Bearer ${tokenOng}`);
+    const cancelamento = await request(app)
+      .post(`/api/doacoes/${id}/cancelar`)
+      .set('Authorization', `Bearer ${tokenOng}`);
     expect(cancelamento.status).toBe(200);
     expect(cancelamento.body.status).toBe('disponivel');
     const disponiveis = await request(app).get('/api/doacoes').set('Authorization', `Bearer ${tokenOng}`);
@@ -71,4 +85,6 @@ describe('cancelar coleta', () => {
   });
 });
 
-afterAll(async () => { await encerrar(); });
+afterAll(async () => {
+  await encerrar();
+});

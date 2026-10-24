@@ -37,9 +37,10 @@ export async function publicar(tokenDoador, dados = {}) {
 }
 
 export async function inserirVencida() {
-  const { rows } = await query(
-    'INSERT INTO doacoes (tipo, quantidade, validade) VALUES (?, ?, ?) RETURNING *',
-    ['Pão', '20 unidades', dataFuturaEmDias(-1)]
-  );
+  const { rows } = await query('INSERT INTO doacoes (tipo, quantidade, validade) VALUES (?, ?, ?) RETURNING *', [
+    'Pão',
+    '20 unidades',
+    dataFuturaEmDias(-1)
+  ]);
   return rows[0].id;
 }
