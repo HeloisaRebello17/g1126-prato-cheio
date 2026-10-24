@@ -13,6 +13,10 @@ Conecta doadores de alimentos excedentes a ONGs, antes que a comida se perca.
 - Mileine - @MileineFreitas
 - Thomas - @thSteinback
 
+## Atividade de diagramas (N2)
+A entrega está em [`docs/diagramas-atividade.md`](docs/diagramas-atividade.md).
+A versão original gerada pela IA está em [`docs/diagramas-ia-original.md`](docs/diagramas-ia-original.md).
+
 ## Como rodar
 
 Requisito: **Node.js 22.13 ou superior**. Mais nada — o banco da Unidade 1 é SQLite, embutido no próprio Node.
