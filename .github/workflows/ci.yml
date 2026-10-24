@@ -1,10 +1,8 @@
 name: CI
 
-# Roda a cada push e a cada Pull Request.
+# Roda a cada Pull Request.
 # O PR só deve ser integrado com este check verde.
 on:
-  push:
-    branches: [main]
   pull_request:
 
 concurrency:
