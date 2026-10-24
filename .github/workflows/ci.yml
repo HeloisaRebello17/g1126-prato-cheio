@@ -1,11 +1,13 @@
 name: CI
 
-# Roda a cada push e a cada Pull Request.
+# Roda a cada Pull Request.
 # O PR só deve ser integrado com este check verde.
 on:
-  push:
-    branches: [main]
   pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-e-testes:
@@ -47,10 +49,18 @@ jobs:
         run: npm ci
 
       - name: Rodar os testes
-        run: npm test
+        run: npm run ci
 
       - name: Verificar se a aplicação sobe
         run: |
-          npm start &
-          sleep 3
-          curl --fail http://localhost:3001/api/saude
+          npm start > server.log 2>&1 &
+          server_pid=$!
+          trap 'kill $server_pid' EXIT
+          for tentativa in {1..15}; do
+            if curl --fail --silent http://localhost:3001/api/saude; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat server.log
+          exit 1

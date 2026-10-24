@@ -1,0 +1,50 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  max-width: 420px;
+  margin: 3rem auto;
+  padding: 1rem;
+  color: #26332a;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+label {
+  display: block;
+  margin-top: 1rem;
+}
+
+input,
+button,
+select {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 0.35rem;
+  padding: 0.75rem;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+button {
+  margin-top: 1.5rem;
+  border: 0;
+  background: #43a047;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  background: #2e7d32;
+}
+
+a {
+  display: block;
+  margin-top: 1rem;
+}
+
+#mensagem {
+  min-height: 1.5rem;
+  color: #b00020;
+}
