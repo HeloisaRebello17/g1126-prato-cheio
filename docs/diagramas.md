@@ -1,5 +1,9 @@
 # Diagramas — Prato Cheio
 
+> **Atividade de diagramas (N2):** a versão revisada dos diagramas de estados e DER, com a análise
+> crítica, está em [`diagramas-atividade.md`](diagramas-atividade.md). Este arquivo reúne os
+> diagramas complementares produzidos na Aula 07.
+
 *Aula 07 · Modelagem e diagramas · nível de IA: IA como colaboradora*
 
 Cada diagrama abaixo responde **uma** pergunta. Os diagramas estão em [Mermaid](https://mermaid.js.org/)
