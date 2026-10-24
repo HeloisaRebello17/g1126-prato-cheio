@@ -83,12 +83,9 @@ a coleta.
   infraestrutura adicional.
 
 **Trade-offs e riscos.**
-- O polling gera requisições repetidas mesmo sem novidade. Com poucos usuários no piloto, isso é
-  aceitável. Se o volume crescer, o intervalo precisa ser ajustado.
-- Com a expiração preguiçosa, uma doação vencida que ninguém consulta continua `disponivel` no
-  banco até a próxima listagem (já registrado em `docs/diagramas.md`).
-- Hoje a lista só é recarregada quando o usuário age (abre a aba, aceita ou publica). O polling
-  automático ainda **não foi implementado**.
+- O polling gera requisições repetidas mesmo sem novidade. Com poucos usuários no piloto, isso é aceitável. Se o volume crescer, o intervalo precisa ser ajustado.
+- Com a expiração preguiçosa, uma doação vencida que ninguém consulta continua `disponivel` no banco até a próxima listagem (já registrado em `docs/diagramas.md`).
+- A lista de doações e as coletas da ONG são recarregadas automaticamente a cada 30 segundos enquanto o perfil de ONG está ativo. O polling usa requisições independentes e é interrompido quando o usuário sai ou quando o perfil é de doador.
 
 **Como verificar.** Abrir a aplicação no DevTools com o perfil "Slow 3G" e registrar o tamanho
 transferido e o tempo até a lista aparecer. Repetir no celular real de um integrante usando os

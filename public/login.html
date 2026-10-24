@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login - Prato Cheio</title>
+  <link rel="stylesheet" href="auth.css" />
+</head>
+<body>
+  <main>
+    <h1>Entrar no Prato Cheio</h1>
+    <form id="loginForm">
+      <label for="email">E-mail</label>
+      <input id="email" type="email" pattern="[^\s@]+@[^\s@]+\.com" required autocomplete="email" />
+      <label for="senha">Senha</label>
+      <input id="senha" type="password" required autocomplete="current-password" />
+      <button type="submit">Entrar</button>
+    </form>
+    <p id="mensagem" role="alert"></p>
+    <a href="cadastro.html">Ainda não tenho cadastro</a>
+  </main>
+  <script>
+    function mostrarMensagem(mensagem) {
+      const texto = String(mensagem || '');
+      document.getElementById('mensagem').textContent = texto
+        ? texto.charAt(0).toLocaleUpperCase('pt-BR') + texto.slice(1)
+        : '';
+    }
+
+    const formulario = document.getElementById('loginForm');
+    const campos = formulario.querySelectorAll('input');
+    campos.forEach((campo) => {
+      campo.addEventListener('input', () => campo.setCustomValidity(''));
+      campo.addEventListener('invalid', () => {
+        if (campo.validity.valueMissing) campo.setCustomValidity('Preencha este campo.');
+        else if (campo.validity.typeMismatch || campo.validity.patternMismatch) campo.setCustomValidity('Informe um e-mail com @ e final .com.');
+      });
+    });
+    formulario.addEventListener('submit', async (evento) => {
+      evento.preventDefault();
+      try {
+        const resposta = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+          email: document.getElementById('email').value,
+          senha: document.getElementById('senha').value
+        }) });
+        const dados = await resposta.json();
+        if (!resposta.ok) { mostrarMensagem(dados.erro); return; }
+        localStorage.setItem('token', dados.token);
+        window.location.href = 'index.html';
+      } catch {
+        mostrarMensagem('Não foi possível conectar ao servidor. Abra a aplicação em http://localhost:3001.');
+      }
+    });
+  </script>
+</body>
+</html>

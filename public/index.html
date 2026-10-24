@@ -5,8 +5,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Prato Cheio</title>
+  <link rel="stylesheet" href="index.css" />
 
-  <style>
+  <!--
     * {
       box-sizing: border-box;
     }
@@ -140,6 +141,11 @@
       font-size: 1.4rem;
     }
 
+    #filtroTipo,
+    #minhasColetas {
+      display: none;
+    }
+
     ul {
       padding: 0;
       margin: 0;
@@ -204,7 +210,7 @@
         width: 100%;
       }
     }
-  </style>
+  -->
 
 </head>
 
@@ -217,10 +223,11 @@
       <div class="seletor-usuario">
         <label for="tipoUsuario">Usuário:</label>
 
-        <select id="tipoUsuario" name="tipoUsuario">
+        <select id="tipoUsuario" name="tipoUsuario" disabled>
           <option value="doador">Doador</option>
           <option value="ong">ONG</option>
         </select>
+        <button id="sair" type="button">Sair</button>
       </div>
     </header>
 
@@ -240,7 +247,7 @@
           Quantidade
         </label>
 
-        <input id="quantidade" type="text" placeholder="Ex.: 10 porções" />
+        <input id="quantidade" type="number" min="0.01" step="any" inputmode="decimal" placeholder="Ex.: 10" />
 
         <label for="validade">
           Validade / retirar até
@@ -267,8 +274,14 @@
     <div id="doacoesDisponiveis">
 
       <h2>Doações disponíveis</h2>
+      <input id="filtroTipo" type="search" placeholder="Filtrar por tipo de alimento" />
 
       <ul id="lista"></ul>
+
+      <section id="minhasColetas">
+        <h2>Minhas coletas</h2>
+        <ul id="listaColetas"></ul>
+      </section>
 
     </div>
 
@@ -276,11 +289,18 @@
   </div>
 
   <script>
+    const token = localStorage.getItem("token");
+    if (!token) window.location.href = "login.html";
+    const cabecalhoAuth = { Authorization: `Bearer ${token}` };
     const tipoUsuario = document.getElementById("tipoUsuario");
     const areaDoador = document.getElementById("areaDoador");
     const doacoesDisponiveis = document.getElementById(
       "doacoesDisponiveis"
     );
+    const filtroTipo = document.getElementById("filtroTipo");
+    const minhasColetas = document.getElementById("minhasColetas");
+    let intervaloAtualizacao;
+    let coletasLocais = [];
 
     function mostrarErro(mensagem) {
       const elemento = document.getElementById("mensagemErro");
@@ -292,21 +312,57 @@
       if (tipoUsuario.value === "ong") {
         areaDoador.style.display = "none";
         doacoesDisponiveis.style.display = "block";
-
+        filtroTipo.style.display = "block";
+        minhasColetas.style.display = "block";
         carregar();
+        carregarColetas();
+        clearInterval(intervaloAtualizacao);
+        intervaloAtualizacao = setInterval(() => {
+          carregar();
+          carregarColetas();
+        }, 30000);
       } else {
         areaDoador.style.display = "block";
         doacoesDisponiveis.style.display = "none";
+        filtroTipo.style.display = "none";
+        minhasColetas.style.display = "none";
+        clearInterval(intervaloAtualizacao);
       }
     }
 
     tipoUsuario.addEventListener("change", atualizarTela);
+    filtroTipo.addEventListener("input", carregar);
+
+    document.getElementById("sair").addEventListener("click", () => {
+      localStorage.removeItem("token");
+      window.location.href = "login.html";
+    });
+
+    async function inicializarUsuario() {
+      try {
+        const resposta = await fetch("/api/me", { headers: cabecalhoAuth });
+        if (!resposta.ok) throw new Error("sessão expirada");
+        const usuario = await resposta.json();
+        tipoUsuario.value = usuario.perfil;
+        atualizarTela();
+      } catch {
+        localStorage.removeItem("token");
+        window.location.href = "login.html";
+      }
+    }
 
     async function carregar() {
       try {
-        const res = await fetch("/api/doacoes");
+        const params = filtroTipo.value.trim()
+          ? `?tipo=${encodeURIComponent(filtroTipo.value.trim())}`
+          : "";
+        const res = await fetch(`/api/doacoes${params}`, { headers: cabecalhoAuth });
 
-        const doacoes = await res.json();
+        const resposta = await res.json();
+        const termo = filtroTipo.value.trim().toLocaleLowerCase("pt-BR");
+        const doacoes = Array.isArray(resposta)
+          ? resposta.filter((doacao) => !termo || doacao.tipo.toLocaleLowerCase("pt-BR").includes(termo))
+          : [];
 
         const lista = document.getElementById("lista");
 
@@ -336,7 +392,8 @@
             const res = await fetch(`/api/doacoes/${d.id}/aceitar`, {
               method: "POST",
               headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                ...cabecalhoAuth
               },
               body: JSON.stringify({
                 ong: "Minha ONG"
@@ -351,7 +408,9 @@
             }
 
             document.getElementById("mensagemErro").textContent = "";
-            carregar();
+            coletasLocais = [...coletasLocais.filter((coleta) => coleta.id !== d.id), d];
+            await carregar();
+            await carregarColetas();
           };
 
           li.appendChild(botao);
@@ -366,6 +425,54 @@
           erro
         );
 
+      }
+    }
+
+    async function carregarColetas() {
+      let coletas = coletasLocais;
+      try {
+        const res = await fetch("/api/minhas-coletas", { headers: cabecalhoAuth });
+        if (res.ok) {
+          const resposta = await res.json();
+          if (Array.isArray(resposta)) {
+            coletas = resposta;
+            coletasLocais = resposta;
+          }
+        }
+      } catch {
+        // Mantém a coleta aceita na tela até o servidor voltar a responder.
+      }
+      const lista = document.getElementById("listaColetas");
+      lista.innerHTML = coletas.length ? "" : "<li>Nenhuma coleta aceita.</li>";
+      for (const coleta of coletas) {
+        const li = document.createElement("li");
+        li.textContent = `${coleta.tipo} — ${coleta.quantidade}`;
+        const botao = document.createElement("button");
+        botao.textContent = "Cancelar coleta";
+        botao.onclick = async () => {
+          botao.disabled = true;
+          try {
+            const resposta = await fetch(`/api/doacoes/${coleta.id}/cancelar`, {
+              method: "POST",
+              headers: cabecalhoAuth
+            });
+            const dados = await resposta.json().catch(() => ({}));
+            if (!resposta.ok) {
+              mostrarErro(dados.erro || "Não foi possível cancelar a coleta.");
+              botao.disabled = false;
+              return;
+            }
+            coletasLocais = coletasLocais.filter((item) => item.id !== coleta.id);
+            document.getElementById("mensagemErro").textContent = "";
+            await carregar();
+            await carregarColetas();
+          } catch {
+            mostrarErro("Não foi possível conectar ao servidor para cancelar a coleta.");
+            botao.disabled = false;
+          }
+        };
+        li.appendChild(botao);
+        lista.appendChild(li);
       }
     }
 
@@ -443,7 +550,8 @@
               method: "POST",
 
               headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                ...cabecalhoAuth
               },
 
               body: JSON.stringify({
@@ -469,7 +577,7 @@
         }
       };
 
-    atualizarTela();
+    inicializarUsuario();
   </script>
 
 </body>
