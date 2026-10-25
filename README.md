@@ -13,6 +13,10 @@ Conecta doadores de alimentos excedentes a ONGs, antes que a comida se perca.
 - Mileine - @MileineFreitas
 - Thomas - @thSteinback
 
+## Atividade de diagramas (N2)
+A entrega está em [`docs/diagramas-atividade.md`](docs/diagramas-atividade.md).
+A versão original gerada pela IA está em [`docs/diagramas-ia-original.md`](docs/diagramas-ia-original.md).
+
 ## Como rodar
 
 Requisitos: **Node.js 22.13 ou superior** e um **PostgreSQL** acessível pela variável `DATABASE_URL`.
@@ -28,6 +32,7 @@ npm install                   # só na primeira vez
 npm run db:migrar             # cria o schema (o npm start também cria)
 npm start                     # sobe em http://localhost:3001
 npm test                      # roda os testes (no banco pratocheio_test)
+npm run ci                    # verifica sintaxe e roda os testes (usado no CI)
 npm run dev                   # sobe recarregando a cada alteração
 ```
 
@@ -90,6 +95,11 @@ src/doacoes.js       regras de negócio      <- implementar (U1)
 src/repositorio.js   acesso ao banco (SQL)  <- implementar (U1)
 public/index.html    interface (funciona no celular)
 tests/               testes automatizados
+tests/app.test.js    verificação de saúde da aplicação
+tests/auth.test.js   cadastro, login e permissões
+tests/doacoes.test.js publicação, filtros, validade e validações
+tests/coletas.test.js aceite, concorrência e cancelamento
+tests/helpers.js     preparação do banco e dados de teste
 docs/analise.md      documento de análise   (Trabalho 1)
 docs/projeto.md      documento de projeto   (Trabalho 2)
 docs/adr/            decisões arquiteturais (Trabalho 2)

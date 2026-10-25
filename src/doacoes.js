@@ -11,6 +11,12 @@ function inicioDeHoje() {
   return new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
 }
 
+// id vem da URL; um valor que não é inteiro (ex.: "abc") faria o PostgreSQL
+// rejeitar a consulta com erro de tipo — para a API é só uma doação inexistente.
+function idValido(id) {
+  return /^\d{1,10}$/.test(String(id)) && Number(id) <= 2147483647;
+}
+
 // A doação vale até o fim do dia da validade; vence a partir do dia seguinte.
 function estaVencida(doacao) {
   return paraData(doacao.validade) < inicioDeHoje();
@@ -24,11 +30,7 @@ function validarValidade(validade) {
   const [dia, mes, ano] = validade.split('/').map(Number);
   const dataValidade = paraData(validade);
 
-  if (
-    dataValidade.getFullYear() !== ano ||
-    dataValidade.getMonth() !== mes - 1 ||
-    dataValidade.getDate() !== dia
-  ) {
+  if (dataValidade.getFullYear() !== ano || dataValidade.getMonth() !== mes - 1 || dataValidade.getDate() !== dia) {
     throw new Error('validade deve ser uma data válida');
   }
 
@@ -40,20 +42,27 @@ function validarValidade(validade) {
 // História zero — "um doador publica uma doação".
 // Critério: tipo, quantidade e validade são obrigatórios.
 export async function criarDoacao({ tipo, quantidade, validade }) {
-  if (!tipo || !quantidade || !validade) {
+  if (typeof tipo !== 'string' || !tipo.trim() || typeof validade !== 'string' || !validade.trim()) {
     throw new Error('tipo, quantidade e validade são obrigatórios');
+  }
+  if (
+    typeof quantidade !== 'string' ||
+    !/^\d+(?:[.,]\d+)?$/.test(quantidade.trim()) ||
+    Number(quantidade.replace(',', '.')) <= 0
+  ) {
+    throw new Error('quantidade deve ser um número positivo');
   }
 
   validarValidade(validade);
 
-  return repo.inserir({ tipo, quantidade, validade });
+  return repo.inserir({ tipo: tipo.trim(), quantidade: quantidade.trim(), validade });
 }
 
 // História zero — "uma ONG vê as doações disponíveis".
 // H5a — "doação vencida sai da lista": ao listar, as que passaram da validade
 // são marcadas como 'vencida' e não aparecem mais para as ONGs.
-export async function listarDisponiveis() {
-  const disponiveis = await repo.listarDisponiveis();
+export async function listarDisponiveis(tipo) {
+  const disponiveis = await repo.listarDisponiveis(tipo);
   const validas = [];
   for (const doacao of disponiveis) {
     if (estaVencida(doacao)) await repo.marcarVencida(doacao.id);
@@ -62,15 +71,17 @@ export async function listarDisponiveis() {
   return validas;
 }
 
+export async function listarAceitas(ong) {
+  if (typeof ong !== 'string' || !ong.trim()) throw new Error('ONG é obrigatória');
+  return repo.listarAceitasPorOng(ong.trim());
+}
+
 // História zero — "uma ONG aceita uma doação".
 // Regra do caso: uma doação aceita não fica disponível para outra ONG.
 // H5a: uma doação vencida não pode ser aceita.
 export async function aceitar(id, ong) {
-  // id vem da URL; um valor que não é inteiro (ex.: "abc") faria o PostgreSQL
-  // rejeitar a consulta com erro de tipo — para a API é só uma doação inexistente.
-  if (!/^\d{1,10}$/.test(String(id)) || Number(id) > 2147483647) {
-    throw new Error('doação não encontrada');
-  }
+  if (typeof ong !== 'string' || !ong.trim()) throw new Error('ONG é obrigatória');
+  if (!idValido(id)) throw new Error('doação não encontrada');
   const doacao = await repo.buscarPorId(id);
   if (!doacao) throw new Error('doação não encontrada');
   if (doacao.status === 'vencida') throw new Error('doação vencida');
@@ -82,7 +93,15 @@ export async function aceitar(id, ong) {
     throw new Error('doação já foi aceita');
   }
 
-  const aceita = await repo.aceitar(id, ong);
+  const aceita = await repo.aceitar(id, ong.trim());
   if (!aceita) throw new Error('doação já foi aceita');
   return aceita;
+}
+
+export async function cancelar(id, ong) {
+  if (typeof ong !== 'string' || !ong.trim()) throw new Error('ONG é obrigatória');
+  if (!idValido(id)) throw new Error('coleta não encontrada para esta ONG');
+  const cancelada = await repo.cancelarAceite(id, ong.trim());
+  if (!cancelada) throw new Error('coleta não encontrada para esta ONG');
+  return cancelada;
 }

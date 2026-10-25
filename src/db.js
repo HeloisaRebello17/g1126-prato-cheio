@@ -3,7 +3,7 @@
 // SQL continua usando `?` como marcador; aqui convertemos para $1, $2, …
 import pg from 'pg';
 import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { URL, fileURLToPath } from 'node:url';
 
 const { Pool } = pg;
 
@@ -13,9 +13,7 @@ if (!process.env.DATABASE_URL && existsSync(ENV_LOCAL)) process.loadEnvFile(ENV_
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
-  throw new Error(
-    'Defina DATABASE_URL (veja .env.example). Ex.: docker compose up -d && cp .env.example .env'
-  );
+  throw new Error('Defina DATABASE_URL (veja .env.example). Ex.: docker compose up -d && cp .env.example .env');
 }
 
 let pool;
@@ -52,6 +50,14 @@ export async function query(sql, valores = []) {
 /** Cria o schema, se ainda não existir. Rodado por `npm run db:migrar` e ao subir o servidor. */
 export async function migrar() {
   await conexao().query(`
+    CREATE TABLE IF NOT EXISTS usuarios (
+      id          SERIAL PRIMARY KEY,
+      nome        TEXT NOT NULL,
+      email       TEXT NOT NULL UNIQUE,
+      senha       TEXT NOT NULL,
+      perfil      TEXT NOT NULL CHECK (perfil IN ('doador', 'ong')),
+      criada_em   TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
     CREATE TABLE IF NOT EXISTS doacoes (
       id          SERIAL PRIMARY KEY,
       tipo        TEXT NOT NULL,
@@ -66,7 +72,7 @@ export async function migrar() {
 
 /** Apaga todos os dados. Usado pelos testes. */
 export async function limparBanco() {
-  await conexao().query('TRUNCATE doacoes RESTART IDENTITY');
+  await conexao().query('TRUNCATE doacoes, usuarios RESTART IDENTITY');
 }
 
 export async function encerrar() {
