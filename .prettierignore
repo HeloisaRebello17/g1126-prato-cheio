@@ -1,0 +1,4 @@
+node_modules/
+dados.sqlite
+dados.sqlite-journal
+*.timestamp-*

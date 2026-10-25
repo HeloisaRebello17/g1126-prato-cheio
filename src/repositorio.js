@@ -5,6 +5,19 @@
 //   const { rows } = await query('SELECT * FROM doacoes WHERE id = ?', [id]);
 import { query } from './db.js';
 
+export async function inserirUsuario({ nome, email, senha, perfil }) {
+  const { rows } = await query(
+    'INSERT INTO usuarios (nome, email, senha, perfil) VALUES (?, ?, ?, ?) RETURNING id, nome, email, perfil',
+    [nome, email, senha, perfil]
+  );
+  return rows[0];
+}
+
+export async function buscarUsuarioPorEmail(email) {
+  const { rows } = await query('SELECT * FROM usuarios WHERE email = ?', [email]);
+  return rows[0];
+}
+
 export async function inserir({ tipo, quantidade, validade }) {
   const { rows } = await query(
     `INSERT INTO doacoes (tipo, quantidade, validade)
@@ -15,10 +28,15 @@ export async function inserir({ tipo, quantidade, validade }) {
   return rows[0];
 }
 
-export async function listarDisponiveis() {
-  const { rows } = await query(
-    "SELECT * FROM doacoes WHERE status = 'disponivel' ORDER BY id"
-  );
+export async function listarDisponiveis(tipo) {
+  const filtro = typeof tipo === 'string' && tipo.trim() ? ' AND lower(tipo) LIKE lower(?)' : '';
+  const valores = filtro ? [`%${tipo.trim()}%`] : [];
+  const { rows } = await query(`SELECT * FROM doacoes WHERE status = 'disponivel'${filtro} ORDER BY id`, valores);
+  return rows;
+}
+
+export async function listarAceitasPorOng(ong) {
+  const { rows } = await query("SELECT * FROM doacoes WHERE status = 'aceita' AND ong = ? ORDER BY id", [ong]);
   return rows;
 }
 
@@ -55,5 +73,16 @@ export async function buscarAceitaPorOng(ong) {
     [ong]
   );
 
+  return rows[0];
+}
+
+export async function cancelarAceite(id, ong) {
+  const { rows } = await query(
+    `UPDATE doacoes
+     SET status = 'disponivel', ong = NULL
+     WHERE id = ? AND status = 'aceita' AND ong = ?
+     RETURNING *`,
+    [id, ong]
+  );
   return rows[0];
 }
