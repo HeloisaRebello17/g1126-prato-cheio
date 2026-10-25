@@ -95,6 +95,15 @@ describe('aceitar uma doação', () => {
     expect(res.status).toBe(400);
     expect(res.body.erro).toMatch(/já foi aceita/);
   });
+
+  it('responde "não encontrada" para id que não é número', async () => {
+    const res = await request(app)
+      .post('/api/doacoes/abc/aceitar')
+      .send({ ong: 'ONG A' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.erro).toMatch(/não encontrada/);
+  });
 });
 
 // H5a — doação vencida sai da lista.

@@ -2,28 +2,14 @@
 // A interface (`query` devolvendo `{ rows }`) mantém repositório e testes iguais;
 // SQL continua usando `?` como marcador; aqui convertemos para $1, $2, …
 import pg from 'pg';
-import { existsSync, readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const { Pool } = pg;
 
-function carregarEnvLocal() {
-  if (process.env.DATABASE_URL) return;
-  const envPath = join(dirname(fileURLToPath(import.meta.url)), '..', '.env');
-  if (!existsSync(envPath)) return;
-  for (const line of readFileSync(envPath, 'utf8').split(/\r?\n/)) {
-    const t = line.trim();
-    if (!t || t.startsWith('#')) continue;
-    const eq = t.indexOf('=');
-    if (eq === -1) continue;
-    const key = t.slice(0, eq).trim();
-    const val = t.slice(eq + 1).trim();
-    if (!process.env[key]) process.env[key] = val;
-  }
-}
-
-carregarEnvLocal();
+// .env da raiz do projeto; variáveis já definidas no ambiente (CI, testes) têm prioridade.
+const ENV_LOCAL = fileURLToPath(new URL('../.env', import.meta.url));
+if (!process.env.DATABASE_URL && existsSync(ENV_LOCAL)) process.loadEnvFile(ENV_LOCAL);
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
@@ -35,10 +21,16 @@ if (!DATABASE_URL) {
 let pool;
 
 function conexao() {
-  if (!pool) pool = new Pool({ connectionString: DATABASE_URL });
+  if (!pool) {
+    pool = new Pool({ connectionString: DATABASE_URL });
+    // Sem este handler, uma conexão ociosa que cai (ex.: banco reiniciado) derruba o processo.
+    pool.on('error', (erro) => console.error('erro na conexão com o banco:', erro.message));
+  }
   return pool;
 }
 
+// Troca todo `?` por $n — por isso o SQL não pode ter `?` literal (em strings
+// ou operadores jsonb como `?|`); nesses casos, use $n direto.
 function sqlComPlaceholdersPg(sql) {
   let i = 0;
   return sql.replace(/\?/g, () => `$${++i}`);

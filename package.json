@@ -5,10 +5,10 @@
   "type": "module",
   "description": "Prato Cheio — conecta doadores de alimentos a ONGs. Projeto da disciplina Análise, Projeto e Desenvolvimento Ágil.",
   "scripts": {
-    "start": "node --no-warnings=ExperimentalWarning src/server.js",
-    "dev": "node --no-warnings=ExperimentalWarning --watch src/server.js",
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
     "test": "vitest run",
-    "db:migrar": "node --no-warnings=ExperimentalWarning -e \"import('./src/db.js').then(async d=>{await d.migrar();console.log('schema criado');await d.encerrar()})\""
+    "db:migrar": "node -e \"import('./src/db.js').then(async d=>{await d.migrar();console.log('schema criado');await d.encerrar()})\""
   },
   "dependencies": {
     "express": "^4.19.2",

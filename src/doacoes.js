@@ -66,6 +66,11 @@ export async function listarDisponiveis() {
 // Regra do caso: uma doação aceita não fica disponível para outra ONG.
 // H5a: uma doação vencida não pode ser aceita.
 export async function aceitar(id, ong) {
+  // id vem da URL; um valor que não é inteiro (ex.: "abc") faria o PostgreSQL
+  // rejeitar a consulta com erro de tipo — para a API é só uma doação inexistente.
+  if (!/^\d{1,10}$/.test(String(id)) || Number(id) > 2147483647) {
+    throw new Error('doação não encontrada');
+  }
   const doacao = await repo.buscarPorId(id);
   if (!doacao) throw new Error('doação não encontrada');
   if (doacao.status === 'vencida') throw new Error('doação vencida');

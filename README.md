@@ -25,24 +25,60 @@ Requisitos: **Node.js 22.13 ou superior** e um **PostgreSQL** acessível pela va
 docker compose up -d          # sobe PostgreSQL na porta 5432
 cp .env.example .env          # Windows: copy .env.example .env
 npm install                   # só na primeira vez
-npm run db:migrar             # cria o schema
+npm run db:migrar             # cria o schema (o npm start também cria)
 npm start                     # sobe em http://localhost:3001
-npm test                      # roda os testes (usa o mesmo DATABASE_URL)
+npm test                      # roda os testes (no banco pratocheio_test)
 npm run dev                   # sobe recarregando a cada alteração
 ```
 
-Sem Docker, instale PostgreSQL na máquina ou use um serviço gratuito (Neon, Supabase, Render) e aponte `DATABASE_URL` no `.env`.
+Sem Docker, instale PostgreSQL na máquina ou use um serviço gratuito (Neon, Supabase, Render) e aponte `DATABASE_URL` no `.env`. Para os testes, crie um segundo banco e aponte `TEST_DATABASE_URL` para ele.
 
 ## O banco: PostgreSQL
 
-O `src/db.js` concentra a conexão (`pg` + `DATABASE_URL`) e expõe `query()` devolvendo `{ rows }`. O SQL do repositório continua usando `?` como marcador; a conversão para `$1`, `$2`, … fica só no `db.js`.
+O `src/db.js` concentra a conexão (`pg` + `DATABASE_URL`) e expõe `query()` devolvendo `{ rows }`. O SQL do repositório continua usando `?` como marcador; a conversão para `$1`, `$2`, … fica só no `db.js`. O schema (tabela `doacoes`) é criado por `migrar()` em `src/db.js`. A decisão está no [ADR 0001](docs/adr/0001-migracao-sqlite-para-postgresql.md).
 
-| Caminho | Quando usar |
+### Credenciais e bancos (Docker local)
+
+| Item | Valor |
 |---|---|
-| `docker compose up -d` | desenvolvimento e testes locais (credenciais em `.env.example`) |
-| PostgreSQL instalado / serviço na nuvem | produção ou se o grupo preferir no ADR |
+| Host / porta | `localhost` / `5432` |
+| Usuário / senha | `pratocheio` / `pratocheio` |
+| Banco de desenvolvimento | `pratocheio` (usado por `npm start` e `npm run dev`, via `DATABASE_URL` no `.env`) |
+| Banco de testes | `pratocheio_test` (usado por `npm test`; **é apagado a cada teste**) |
+| URL de conexão | `postgres://pratocheio:pratocheio@127.0.0.1:5432/pratocheio` |
 
-O CI sobe um contêiner PostgreSQL e define `DATABASE_URL` automaticamente (`.github/workflows/ci.yml`).
+As credenciais servem só para desenvolvimento local. Nunca as use num banco exposto na internet. O arquivo `.env` não vai para o Git.
+
+### Conectar no banco
+
+Pelo terminal, sem instalar nada além do Docker:
+
+```bash
+docker compose exec postgres psql -U pratocheio -d pratocheio        # banco de dev
+docker compose exec postgres psql -U pratocheio -d pratocheio_test   # banco de testes
+```
+
+Dentro do `psql`: `\dt` lista as tabelas, `SELECT * FROM doacoes;` mostra os dados, `\q` sai.
+
+Por um cliente gráfico (DBeaver, pgAdmin, extensão do VS Code): crie uma conexão **PostgreSQL** com os dados da tabela acima.
+
+### Comandos úteis do Docker
+
+```bash
+docker compose ps             # o contêiner está de pé? (STATUS deve ser "healthy")
+docker compose logs postgres  # logs do banco
+docker compose stop           # para o banco (os dados ficam guardados)
+docker compose down -v        # remove o contêiner E apaga todos os dados
+```
+
+Os dados ficam no volume `dados-postgres` e sobrevivem a `stop`/`down`. O banco `pratocheio_test` é criado pelo script `docker/postgres-init/01-banco-de-testes.sql`, que roda **só quando o volume é criado**. Se você subiu o banco antes desse script existir e o `npm test` reclamar que `pratocheio_test` não existe, rode `docker compose down -v` e depois `docker compose up -d`.
+
+**Problemas comuns:**
+- `ECONNREFUSED 127.0.0.1:5432`: o banco não está de pé. Rode `docker compose up -d`.
+- `port is already allocated` no `docker compose up`: outro PostgreSQL já usa a porta 5432. Pare esse outro ou troque a porta para `'5433:5432'` no `docker-compose.yml` e no `.env`.
+- `Defina DATABASE_URL`: falta o `.env`. Rode `cp .env.example .env`.
+
+O CI sobe um contêiner PostgreSQL próprio e define `DATABASE_URL` e `TEST_DATABASE_URL` automaticamente (`.github/workflows/ci.yml`).
 
 ## Estrutura
 
