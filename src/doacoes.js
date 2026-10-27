@@ -11,6 +11,12 @@ function inicioDeHoje() {
   return new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
 }
 
+// id vem da URL; um valor que não é inteiro (ex.: "abc") faria o PostgreSQL
+// rejeitar a consulta com erro de tipo — para a API é só uma doação inexistente.
+function idValido(id) {
+  return /^\d{1,10}$/.test(String(id)) && Number(id) <= 2147483647;
+}
+
 // A doação vale até o fim do dia da validade; vence a partir do dia seguinte.
 function estaVencida(doacao) {
   return paraData(doacao.validade) < inicioDeHoje();
@@ -75,6 +81,7 @@ export async function listarAceitas(ong) {
 // H5a: uma doação vencida não pode ser aceita.
 export async function aceitar(id, ong) {
   if (typeof ong !== 'string' || !ong.trim()) throw new Error('ONG é obrigatória');
+  if (!idValido(id)) throw new Error('doação não encontrada');
   const doacao = await repo.buscarPorId(id);
   if (!doacao) throw new Error('doação não encontrada');
   if (doacao.status === 'vencida') throw new Error('doação vencida');
@@ -93,6 +100,7 @@ export async function aceitar(id, ong) {
 
 export async function cancelar(id, ong) {
   if (typeof ong !== 'string' || !ong.trim()) throw new Error('ONG é obrigatória');
+  if (!idValido(id)) throw new Error('coleta não encontrada para esta ONG');
   const cancelada = await repo.cancelarAceite(id, ong.trim());
   if (!cancelada) throw new Error('coleta não encontrada para esta ONG');
   return cancelada;

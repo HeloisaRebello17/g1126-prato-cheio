@@ -4,13 +4,24 @@
 
 ## Refatoração 1 — Migração de SQLite para PostgreSQL
 
-- **Motivo:** (o que a decidiu — ver o ADR da Unidade 2)
-- **O que mudou:** (arquivos e o que neles)
-- **O que NÃO mudou:** (as regras de negócio? as rotas? os testes?)
+- **Motivo:** a U3 exige PostgreSQL acessível por `DATABASE_URL` com CI verde; orçamento zero levou
+  a rodar em contêiner Docker ([ADR 0001](adr/0001-migracao-sqlite-para-postgresql.md), decisão #1 do `projeto.md`).
+- **O que mudou:**
+  - `src/db.js` — `node:sqlite` → `pg` (`Pool`); conversão `?` → `$n`; schema com `SERIAL` e
+    `TIMESTAMPTZ DEFAULT now()`; `TRUNCATE ... RESTART IDENTITY` nos testes; leitura do `.env`.
+  - `src/doacoes.js` — id que não é número responde "doação não encontrada" (no PostgreSQL viraria erro de tipo).
+  - `docker-compose.yml` + `docker/postgres-init/` — PostgreSQL 16 local, com banco de testes separado.
+  - `vitest.config.js` — testes no banco `pratocheio_test` (nunca no de desenvolvimento), um arquivo por vez.
+  - `.github/workflows/ci.yml` — service container PostgreSQL.
+  - `package.json` — dependência `pg`; saíram as flags que só existiam por causa do `node:sqlite`.
+  - `README.md`, `.env.example` — como subir, conectar e testar o banco.
+- **O que NÃO mudou:** regras de negócio, rotas da API, o SQL de `src/repositorio.js` e os 11 testes
+  existentes (só foi atualizado um comentário). `validade` continua `TEXT dd/mm/aaaa` (ver ADR).
 - **Evidência de que o comportamento se manteve:**
-  - testes antes da mudança: ___ passando
-  - testes depois da mudança: ___ passando
-  - link da execução do CI verde:
+  - testes antes da mudança (commit `5af303d`, SQLite): **11 passando**
+  - testes depois da mudança (PostgreSQL 16): **12 passando**, ou seja, os mesmos 11 mais um novo
+    para id inválido
+  - link da execução do CI verde: (preencher após abrir o PR da branch `migrarBD_Julio`)
 
 ## Refatoração 2 — (nome)
 

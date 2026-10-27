@@ -1,7 +1,7 @@
 // Camada de dados do Prato Cheio — acesso ao banco.
 // A conexão e o schema já estão prontos em src/db.js.
 //
-// Marcador de parâmetro é `?` (SQL parametrizado evita injeção):
+// Marcador de parâmetro é `?` (convertido para $n no db.js; evita injeção):
 //   const { rows } = await query('SELECT * FROM doacoes WHERE id = ?', [id]);
 import { query } from './db.js';
 

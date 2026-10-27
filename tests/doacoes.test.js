@@ -116,6 +116,12 @@ describe('validação dos campos da doação', () => {
   it('recusa ONG composta somente por espaços', async () => {
     await expect(doacoes.aceitar(999, '   ')).rejects.toThrow('ONG é obrigatória');
   });
+
+  it('responde "não encontrada" para id que não é número', async () => {
+    const res = await request(app).post('/api/doacoes/abc/aceitar').set('Authorization', `Bearer ${tokenOng}`).send();
+    expect(res.status).toBe(400);
+    expect(res.body.erro).toMatch(/não encontrada/);
+  });
 });
 
 afterAll(async () => {

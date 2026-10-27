@@ -140,7 +140,7 @@ flowchart TB
         db["src/db.js<br/>conexão + schema<br/>query() → { rows }"]
     end
 
-    banco[("SQLite — dados.sqlite<br/>(U3: PostgreSQL)")]
+    banco[("PostgreSQL 16<br/>(Docker — DATABASE_URL)")]
 
     ui -- "fetch /api/doacoes<br/>/api/doacoes/:id/aceitar" --> app
     server --> app
@@ -198,13 +198,13 @@ erDiagram
 ```mermaid
 erDiagram
     doacoes {
-        INTEGER id PK "AUTOINCREMENT"
+        SERIAL id PK
         TEXT tipo "NOT NULL"
         TEXT quantidade "NOT NULL"
         TEXT validade "NOT NULL - dd/mm/aaaa"
         TEXT status "NOT NULL DEFAULT disponivel"
         TEXT ong "NULL - nome livre"
-        TEXT criada_em "DEFAULT datetime(now)"
+        TIMESTAMPTZ criada_em "NOT NULL DEFAULT now()"
     }
 ```
 
@@ -221,7 +221,7 @@ ainda não existe ou virou texto solto.
 | 4 | **Janela** de retirada com data comparável | `validade TEXT` no formato `dd/mm/aaaa` | Não dá para ordenar nem comparar no SQL (`'01/12/2026' < '31/01/2026'` como texto). O front ainda trata `aaaa-mm-dd`, sinal de que o formato já mudou uma vez | Na migração para PostgreSQL (U3), trocar para `DATE` e converter na borda (API) |
 | 5 | Medir **tempo entre publicação e coleta** (métrica do experimento em `analise.md`) | Só `criada_em`; não há `aceita_em` nem `coletada_em` | A métrica de sucesso do piloto (−30% no tempo publicação → coleta) **não pode ser calculada** com os dados guardados | Adicionar `aceita_em` e `coletada_em` |
 | 6 | `quantidade` serve para estimar refeições | `quantidade TEXT` livre ("10 porções", "5 kg") | Não dá para somar refeições entregues (métrica complementar) | Separar em `quantidade NUMERIC` + `unidade` quando a métrica for priorizada |
-| 7 | — | `criada_em DEFAULT (datetime('now'))` | Função específica do SQLite e em UTC; quebra na troca para PostgreSQL | Registrar no ADR da migração (U3): `DEFAULT now()` |
+| 7 | — | `criada_em DEFAULT (datetime('now'))` | Função específica do SQLite e em UTC; quebra na troca para PostgreSQL **Resolvido na migração (U3):** `TIMESTAMPTZ DEFAULT now()` — ver [ADR 0001](adr/0001-migracao-sqlite-para-postgresql.md) |
 | 8 | — | `repositorio.buscarAceitaPorOng` existe e ninguém chama | Código morto que sugere uma regra ("uma ONG só pode ter uma doação aceita"?) que não está no caso | Decidir com o grupo: virar história ou remover |
 
 **Conclusão do confronto:** o código cobre bem a disputa entre ONGs (o caminho feliz + a falha

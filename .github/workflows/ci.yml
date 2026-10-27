@@ -13,29 +13,25 @@ jobs:
   build-e-testes:
     runs-on: ubuntu-latest
 
-    # ---------------------------------------------------------------------
-    # UNIDADE 3 — quando migrarem para PostgreSQL, descomentem este bloco e
-    # a variável DATABASE_URL abaixo. Na Unidade 1 o banco é SQLite em
-    # memória, então o CI não precisa de serviço nenhum.
-    #
-    # services:
-    #   postgres:
-    #     image: postgres:16-alpine
-    #     env:
-    #       POSTGRES_USER: pratocheio
-    #       POSTGRES_PASSWORD: pratocheio
-    #       POSTGRES_DB: pratocheio
-    #     ports:
-    #       - 5432:5432
-    #     options: >-
-    #       --health-cmd="pg_isready -U pratocheio"
-    #       --health-interval=5s
-    #       --health-timeout=3s
-    #       --health-retries=10
-    #
-    # env:
-    #   DATABASE_URL: postgres://pratocheio:pratocheio@localhost:5432/pratocheio
-    # ---------------------------------------------------------------------
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: pratocheio
+          POSTGRES_PASSWORD: pratocheio
+          POSTGRES_DB: pratocheio
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U pratocheio"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=10
+
+    env:
+      DATABASE_URL: postgres://pratocheio:pratocheio@localhost:5432/pratocheio
+      # O banco do CI é descartável: os testes podem usar o mesmo.
+      TEST_DATABASE_URL: postgres://pratocheio:pratocheio@localhost:5432/pratocheio
 
     steps:
       - uses: actions/checkout@v4
