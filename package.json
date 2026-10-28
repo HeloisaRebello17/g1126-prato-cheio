@@ -8,19 +8,21 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "test": "vitest run",
-    "check": "node --check src/app.js && node --check src/autenticacao.js && node --check src/db.js && node --check src/doacoes.js && node --check src/repositorio.js",
-    "ci": "npm run check && npm test",
+    "check": "node --check src/app.js && node --check src/autenticacao.js && node --check src/db.js && node --check src/doacoes.js && node --check src/repositorio.js && node --check src/server.js",
+    "ci": "npm run check && npm run test:cobertura",
     "lint": "eslint .",
     "format:check": "prettier --check \"src/**/*.js\" \"tests/**/*.js\" \"public/**/*.{html,css}\" \"*.json\" \".github/**/*.yml\"",
     "format": "prettier --write \"src/**/*.js\" \"tests/**/*.js\" \"public/**/*.{html,css}\" \"*.json\" \".github/**/*.yml\"",
     "quality": "npm run lint && npm run format:check",
-    "db:migrar": "node -e \"import('./src/db.js').then(async d=>{await d.migrar();console.log('schema criado');await d.encerrar()})\""
+    "db:migrar": "node -e \"import('./src/db.js').then(async d=>{await d.migrar();console.log('schema criado');await d.encerrar()})\"",
+    "test:cobertura": "vitest run --coverage"
   },
   "dependencies": {
     "express": "^4.19.2",
     "pg": "^8.13.1"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^5.0.1",
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^9.0.0",
     "prettier": "^3.0.0",

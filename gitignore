@@ -1,0 +1,8 @@
+node_modules/
+*.log
+.DS_Store
+.env
+
+# artefatos temporários do vitest
+*.timestamp-*
+coverage/

@@ -1,7 +1,7 @@
-# 1. Adoção do Vitest para Testes Automatizados no Ecossistema ES Modules
+# ADR 0002 — Adoção do Vitest para testes automatizados no ecossistema ES Modules
 
 * **Data:** 2026-10-08
-* **Status:** Aprovado
+* **Status:** aceito (o isolamento de banco descrito aqui foi atualizado pelo [ADR 0001](0001-migracao-sqlite-para-postgresql.md): os testes agora usam o banco `pratocheio_test` no PostgreSQL, e não SQLite em memória)
 * **Autores:** Equipe de Desenvolvimento Prato Cheio
 
 ## Contexto
@@ -57,3 +57,7 @@ O projeto Prato Cheio adota ES Modules nativo no Node.js. O Vitest integra-se a 
 
 * **Adaptação de utilitários de Mock:** É necessário utilizar utilitários próprios do Vitest (`vi.fn()`, `vi.spyOn()`) em vez dos equivalentes globais do Jest (`jest.fn()`).
 * **Necessidade de arquivo de configuração dedicado:** Adição do arquivo `vitest.config.js` na raiz do projeto para personalizar limites de cobertura e opções do runner.
+
+## Rastreabilidade
+
+RNF3 (portabilidade e manutenibilidade) e RNF2 (consistência: o Vitest roda os testes de concorrência) em `docs/projeto.md`. Estratégia completa em [ADR 0008](0008-estrategia-de-testes-e-pipeline.md).
