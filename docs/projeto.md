@@ -26,7 +26,18 @@ Ver [`docs/diagramas.md`](diagramas.md): contexto, fluxo principal com pontos de
 componentes e modelo de dados — este último confrontado com o schema real de `src/db.js`.
 
 ## ADRs
-Ver `docs/adr/`.
+Registro completo em [`docs/adr/`](adr/):
+
+| ADR | Decisão | Origem |
+|---|---|---|
+| [0001](adr/0001-migracao-sqlite-para-postgresql.md) | Migração de SQLite para PostgreSQL em contêiner Docker | Decisão #1, RNF3 |
+| [0002](adr/0002-adotar-vitest.md) | Vitest como executor de testes | RNF3 |
+| [0003](adr/0003-reavaliacao-vitest-multicidades.md) | Reavaliação do Vitest com expansão multicidades (mantido) | — |
+| [0004](adr/0004-aceite-concorrente-com-update-condicional.md) | Aceite com UPDATE condicional (otimista) | Decisão #2, RNF2 |
+| [0005](adr/0005-expiracao-sob-demanda-e-polling.md) | Expiração sob demanda e polling | Decisão #3, RNF1, H5a |
+| [0006](adr/0006-autenticacao-propria-scrypt-e-sessoes-em-memoria.md) | Autenticação própria (scrypt, sessões em memória) | Critério 4 |
+| [0007](adr/0007-arquitetura-em-camadas-e-front-end-estatico.md) | Camadas e front-end estático | RNF1, RNF3 |
+| [0008](adr/0008-estrategia-de-testes-e-pipeline.md) | Testes com PostgreSQL real, casos de erro e cobertura no CI | RNF2, RNF3 |
 
 ## Requisitos não-funcionais
 
@@ -39,8 +50,8 @@ resposta → medida), para que seja verificável, e ligado às decisões de proj
 | # | Requisito | Categoria (ISO/IEC 25010) | Decisões afetadas | Situação atual |
 |---|---|---|---|---|
 | RNF1 | Uso em celular com internet instável | Eficiência de desempenho · Usabilidade | #3 (aviso e expiração), interface | Parcial: interface leve existe; desempenho ainda não medido |
-| RNF2 | Consistência no aceite de doações | Confiabilidade · Integridade | #2 (concorrência) | Atendido e testado (cenário sequencial) |
-| RNF3 | Custo zero e portabilidade do banco | Portabilidade · Manutenibilidade | #1 (PostgreSQL), arquitetura em camadas | Em execução: migração na branch `migrarBD_Julio` |
+| RNF2 | Consistência no aceite de doações | Confiabilidade · Integridade | #2 (concorrência) | Atendido e testado (sequencial e com 10 requisições simultâneas) |
+| RNF3 | Custo zero e portabilidade do banco | Portabilidade · Manutenibilidade | #1 (PostgreSQL), arquitetura em camadas | Atendido: migração concluída ([ADR 0001](adr/0001-migracao-sqlite-para-postgresql.md)); suíte passa no PostgreSQL |
 
 ---
 
@@ -131,13 +142,14 @@ aparecer nem ser aceita por outra, mesmo que duas ONGs tentem ao mesmo tempo.
 **Trade-offs e riscos.**
 - A ONG que perde a disputa precisa recarregar a lista e escolher outra doação. Isso é aceitável,
   porque o erro é claro e imediato.
-- O teste atual faz os dois aceites **em sequência**. No SQLite isso basta, porque as escritas são
-  serializadas. No PostgreSQL, com conexões concorrentes reais, o ideal é acrescentar um teste com
-  as duas requisições disparadas em paralelo (`Promise.all`).
+- Além do teste sequencial, `tests/concorrencia.test.js` dispara as requisições **em paralelo**
+  (`Promise.all`) contra o PostgreSQL real: duas ONGs em `tests/coletas.test.js` e dez ONGs em
+  `tests/concorrencia.test.js`; em todos os casos exatamente uma vence. Remover o
+  `AND status = 'disponivel'` do SQL faz esses testes falharem (verificado por mutação).
 
-**Como verificar.** Teste automatizado em `tests/doacoes.test.js` ("recusa aceitar uma doação que
-já foi aceita por outra ONG"), executado no CI a cada Pull Request. Na U3, incluir a variante
-paralela.
+**Como verificar.** `npm test` (testes em `tests/coletas.test.js` e `tests/concorrencia.test.js`),
+executado no CI a cada Pull Request e a cada push na `main`. Decisão registrada no
+[ADR 0004](adr/0004-aceite-concorrente-com-update-condicional.md).
 
 ---
 
@@ -160,7 +172,7 @@ paralela.
 | Ambiente | Unidade 3, com a suíte de testes existente |
 | Artefato | `src/db.js` (e o SQL de `src/repositorio.js`) |
 | Resposta | A troca fica contida na camada de dados; regras, rotas e interface não mudam |
-| Medida | Custo mensal de infraestrutura = R$ 0; `doacoes.js` e `app.js` sem alteração; mesma quantidade de testes passando antes e depois (hoje 11/11); CI verde com serviço PostgreSQL |
+| Medida | Custo mensal de infraestrutura = R$ 0; `doacoes.js` e `app.js` sem alteração; os mesmos testes passando antes e depois (11 antes; 12 depois, com um teste novo para id inválido — ver `docs/refatoracoes.md`); CI verde com serviço PostgreSQL |
 
 **Impacto nas decisões de projeto.**
 - **Arquitetura em camadas:** `app.js` (rotas) → `doacoes.js` (regras) → `repositorio.js` (SQL) →
@@ -201,6 +213,10 @@ diff que `doacoes.js` e `app.js` não mudaram e anexar o link da execução verd
 
 
 ## Critérios de validação do projeto
+
+O confronto entre o produto e os critérios de aceite, com a evidência de cada um, está em
+[`docs/validacao.md`](validacao.md). Os testes automatizados são descritos no
+[ADR 0008](adr/0008-estrategia-de-testes-e-pipeline.md).
 
 ## Uso de IA
 

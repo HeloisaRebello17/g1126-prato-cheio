@@ -1,9 +1,16 @@
 name: CI
 
-# Roda a cada Pull Request.
+# Roda a cada Pull Request, a cada push na main e sob demanda.
 # O PR só deve ser integrado com este check verde.
 on:
   pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Princípio do menor privilégio: o CI só precisa ler o repositório.
+permissions:
+  contents: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -12,6 +19,7 @@ concurrency:
 jobs:
   build-e-testes:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     services:
       postgres:
@@ -44,8 +52,33 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
-      - name: Rodar os testes
+      - name: Rodar os testes com cobertura mínima
         run: npm run ci
+
+      - name: Guardar relatório de cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura
+          path: coverage/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Resumo da cobertura no PR
+        if: always()
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            node -e "
+              const t = JSON.parse(require('fs').readFileSync('coverage/coverage-summary.json')).total;
+              const linhas = ['lines', 'statements', 'functions', 'branches'].map((k) => '| ' + k + ' | ' + t[k].pct + '% |');
+              console.log(['## Cobertura de testes', '', '| Métrica | % |', '|---|---|', ...linhas].join('\n'));
+            " >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Verificar que a migração é idempotente
+        run: |
+          npm run db:migrar
+          npm run db:migrar
 
       - name: Verificar se a aplicação sobe
         run: |
@@ -60,3 +93,18 @@ jobs:
           done
           cat server.log
           exit 1
+
+  auditoria-dependencias:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Informativo: não bloqueia o PR, mas deixa vulnerabilidades visíveis.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - name: Auditar dependências de produção
+        run: npm audit --omit=dev --audit-level=high

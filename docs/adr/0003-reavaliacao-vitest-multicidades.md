@@ -1,8 +1,8 @@
-# ADR 0001 — Adoção do Vitest para Testes Automatizados em Módulos ES Nativos
+# ADR 0003 — Reavaliação do Vitest diante da expansão para múltiplas cidades
 
 * **Data de Criação:** 2026-10-08
 * **Data de Revisão:** 2026-10-08
-* **Status:** Mantido (Revisado e Reavaliado diante da Expansão Multicidades)
+* **Status:** aceito (revisa o [ADR 0002](0002-adotar-vitest.md); decisão mantida)
 * **Autores:** Equipe de Desenvolvimento Prato Cheio
 
 ---

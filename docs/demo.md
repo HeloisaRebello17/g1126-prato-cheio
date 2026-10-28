@@ -21,9 +21,14 @@ npm start
 
 ## Passo a passo reproduzível
 
-1. (ação exata: o que clicar ou qual requisição fazer)
-2. (o que deve acontecer)
-3. …
+1. Suba o banco e a aplicação: `docker compose up -d`, `cp .env.example .env`, `npm install`, `npm start`. Abra `http://localhost:3001`.
+2. Em **Cadastro**, crie um doador (`doador@demo.com`, senha `demo1234`) e uma ONG (`ong@demo.com`, senha `demo1234`). *Esperado:* depois de cadastrar, o usuário já entra autenticado na tela principal (use **Sair** para trocar de usuário).
+3. Como **doador**, publique uma doação: tipo `Arroz`, quantidade `5`, validade uma data futura no formato `dd/mm/aaaa`. *Esperado:* a doação é registrada.
+4. Clique em **Sair**, entre em **Entrar** como **ONG** (`ong@demo.com`). *Esperado:* a doação aparece na lista; filtre por `arr` e ela continua aparecendo.
+5. Aceite a doação pelo botão do cartão da doação. *Esperado:* a doação sai da lista e aparece em "minhas coletas".
+6. **Caso de erro:** como doador, tente publicar com validade `31/02/2099` (ou uma data passada). *Esperado:* mensagem de erro e nenhuma doação criada.
+7. Opcional, concorrência: `npx vitest run tests/concorrencia.test.js`. *Esperado:* 4 testes passando (10 ONGs disputam a mesma doação e só uma vence).
+8. O que falta: notificação externa, confirmação de coleta pelo voluntário e histórico de cancelamentos (ver `docs/validacao.md`).
 
 ## Testado por
 
