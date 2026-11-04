@@ -6,7 +6,9 @@ services:
       POSTGRES_PASSWORD: pratocheio
       POSTGRES_DB: pratocheio
     ports:
-      - '5432:5432'
+      # Porta no seu computador: mude POSTGRES_PORTA no .env se a 5432 já estiver em uso
+      # (ex.: PostgreSQL instalado no Windows). Dentro do contêiner continua 5432.
+      - '${POSTGRES_PORTA:-5432}:5432'
     volumes:
       - dados-postgres:/var/lib/postgresql/data
       - ./docker/postgres-init:/docker-entrypoint-initdb.d:ro

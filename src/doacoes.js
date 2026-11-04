@@ -41,7 +41,7 @@ function validarValidade(validade) {
 
 // História zero — "um doador publica uma doação".
 // Critério: tipo, quantidade e validade são obrigatórios.
-export async function criarDoacao({ tipo, quantidade, validade }) {
+export async function criarDoacao({ tipo, quantidade, validade } = {}, doadorId = null) {
   if (typeof tipo !== 'string' || !tipo.trim() || typeof validade !== 'string' || !validade.trim()) {
     throw new Error('tipo, quantidade e validade são obrigatórios');
   }
@@ -55,7 +55,7 @@ export async function criarDoacao({ tipo, quantidade, validade }) {
 
   validarValidade(validade);
 
-  return repo.inserir({ tipo: tipo.trim(), quantidade: quantidade.trim(), validade });
+  return repo.inserir({ tipo: tipo.trim(), quantidade: quantidade.trim(), validade, doadorId });
 }
 
 // História zero — "uma ONG vê as doações disponíveis".
@@ -85,6 +85,7 @@ export async function aceitar(id, ong) {
   const doacao = await repo.buscarPorId(id);
   if (!doacao) throw new Error('doação não encontrada');
   if (doacao.status === 'vencida') throw new Error('doação vencida');
+  if (doacao.status === 'cancelada') throw new Error('doação cancelada pelo estabelecimento');
   if (doacao.status === 'disponivel' && estaVencida(doacao)) {
     await repo.marcarVencida(doacao.id);
     throw new Error('doação vencida');
@@ -104,4 +105,37 @@ export async function cancelar(id, ong) {
   const cancelada = await repo.cancelarAceite(id, ong.trim());
   if (!cancelada) throw new Error('coleta não encontrada para esta ONG');
   return cancelada;
+}
+
+export const MOTIVO_MAXIMO = 500;
+
+export async function listarPublicadas(doadorId) {
+  return repo.listarPublicadasPorDoador(doadorId);
+}
+
+// H5c — "estabelecimento cancela manualmente uma doação, registrando o motivo".
+// Critério: o motivo é obrigatório e fica no histórico; a doação sai da lista das ONGs
+// (e das coletas da ONG, se já tinha sido aceita). Só quem publicou pode cancelar,
+// e só enquanto ela está disponível ou aceita.
+export async function cancelarPeloDoador(id, doadorId, motivo) {
+  if (typeof motivo !== 'string' || !motivo.trim()) throw new Error('motivo do cancelamento é obrigatório');
+  if (motivo.trim().length > MOTIVO_MAXIMO) {
+    throw new Error(`motivo deve ter no máximo ${MOTIVO_MAXIMO} caracteres`);
+  }
+  if (!idValido(id)) throw new Error('doação não encontrada');
+
+  const cancelada = await repo.cancelarPeloDoador(id, doadorId, motivo.trim());
+  if (cancelada) return cancelada;
+
+  // Nada mudou: descobre o porquê só para dar uma mensagem útil.
+  const doacao = await repo.buscarPorId(id);
+  if (!doacao || doacao.doador_id !== doadorId) throw new Error('doação não encontrada');
+  throw new Error(`doação já está ${doacao.status} e não pode ser cancelada`);
+}
+
+export async function historico(id, doadorId) {
+  if (!idValido(id)) throw new Error('doação não encontrada');
+  const doacao = await repo.buscarPorId(id);
+  if (!doacao || doacao.doador_id !== doadorId) throw new Error('doação não encontrada');
+  return repo.listarHistorico(doacao.id);
 }

@@ -46,7 +46,7 @@ export function criarApp() {
 
   app.post('/api/doacoes', autenticacao.autenticar, autenticacao.exigirPerfil('doador'), async (req, res) => {
     try {
-      res.status(201).json(await doacoes.criarDoacao(req.body));
+      res.status(201).json(await doacoes.criarDoacao(req.body, req.usuario.id));
     } catch (erro) {
       res.status(400).json({ erro: erro.message });
     }
@@ -67,6 +67,41 @@ export function criarApp() {
       res.status(400).json({ erro: erro.message });
     }
   });
+
+  // H5c — o estabelecimento vê as doações que publicou, cancela com motivo e consulta o histórico.
+  app.get('/api/minhas-doacoes', autenticacao.autenticar, autenticacao.exigirPerfil('doador'), async (req, res) => {
+    try {
+      res.json(await doacoes.listarPublicadas(req.usuario.id));
+    } catch (erro) {
+      res.status(400).json({ erro: erro.message });
+    }
+  });
+
+  app.post(
+    '/api/doacoes/:id/cancelar-publicacao',
+    autenticacao.autenticar,
+    autenticacao.exigirPerfil('doador'),
+    async (req, res) => {
+      try {
+        res.json(await doacoes.cancelarPeloDoador(req.params.id, req.usuario.id, req.body?.motivo));
+      } catch (erro) {
+        res.status(erro.message === 'doação não encontrada' ? 404 : 400).json({ erro: erro.message });
+      }
+    }
+  );
+
+  app.get(
+    '/api/doacoes/:id/historico',
+    autenticacao.autenticar,
+    autenticacao.exigirPerfil('doador'),
+    async (req, res) => {
+      try {
+        res.json(await doacoes.historico(req.params.id, req.usuario.id));
+      } catch (erro) {
+        res.status(404).json({ erro: erro.message });
+      }
+    }
+  );
 
   return app;
 }
