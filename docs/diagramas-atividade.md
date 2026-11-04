@@ -183,7 +183,7 @@ stateDiagram-v2
 | `aceita` → `disponivel` (não comparecimento) | Sistema ou estabelecimento | H5b | ❌ | — |
 | `aceita` → `coletada` | Voluntário | Fluxo principal do caso | ❌ | — |
 | `aceita` → `vencida` | Sistema | Perecível se perde se não for coletado | ❌ | `marcarVencida` só atua sobre `disponivel` |
-| `*` → `cancelada` | Estabelecimento | H5c | ❌ | — |
+| `disponivel`/`aceita` → `cancelada` | Estabelecimento | H5c: motivo obrigatório, gravado em `historico_doacao` | ✅ | `doacoes.cancelarPeloDoador` e `repositorio.cancelarPeloDoador` (migração 2, ADR 0009) |
 
 **Observação sobre a decisão #2:** a guarda `[status = disponivel]` da transição de aceite é
 verificada pelo próprio banco, dentro do `UPDATE`. Por isso duas ONGs nunca levam a mesma doação:

@@ -253,6 +253,11 @@
 
           <button id="publicar">Publicar doação</button>
         </fieldset>
+
+        <section id="minhasDoacoes">
+          <h2>Minhas doações</h2>
+          <ul id="listaMinhasDoacoes"></ul>
+        </section>
       </div>
 
       <div id="doacoesDisponiveis">
@@ -307,6 +312,7 @@
           filtroTipo.style.display = 'none';
           minhasColetas.style.display = 'none';
           clearInterval(intervaloAtualizacao);
+          carregarMinhasDoacoes();
         }
       }
 
@@ -444,6 +450,71 @@
         }
       }
 
+      const ROTULO_STATUS = {
+        disponivel: 'disponível',
+        aceita: 'aceita por uma ONG',
+        vencida: 'vencida',
+        cancelada: 'cancelada'
+      };
+
+      // H5c — o estabelecimento cancela uma doação que publicou, informando o motivo.
+      async function carregarMinhasDoacoes() {
+        const lista = document.getElementById('listaMinhasDoacoes');
+        let doacoes;
+        try {
+          const res = await fetch('/api/minhas-doacoes', { headers: cabecalhoAuth });
+          if (!res.ok) throw new Error();
+          doacoes = await res.json();
+        } catch {
+          mostrarErro('Não foi possível carregar suas doações.');
+          return;
+        }
+        lista.innerHTML = doacoes.length ? '' : '<li>Você ainda não publicou doações.</li>';
+        for (const doacao of doacoes) {
+          const li = document.createElement('li');
+          const texto = document.createElement('span');
+          texto.textContent = `${doacao.tipo} — ${doacao.quantidade} (até ${doacao.validade}) · ${
+            ROTULO_STATUS[doacao.status] || doacao.status
+          }`;
+          li.appendChild(texto);
+          if (doacao.status === 'disponivel' || doacao.status === 'aceita') {
+            const botao = document.createElement('button');
+            botao.textContent = 'Cancelar doação';
+            botao.onclick = () => cancelarPublicacao(doacao, botao);
+            li.appendChild(botao);
+          }
+          lista.appendChild(li);
+        }
+      }
+
+      async function cancelarPublicacao(doacao, botao) {
+        const motivo = prompt(`Por que você está cancelando a doação de ${doacao.tipo}?`);
+        if (motivo === null) return;
+        if (!motivo.trim()) {
+          mostrarErro('Informe o motivo do cancelamento.');
+          return;
+        }
+        botao.disabled = true;
+        try {
+          const res = await fetch(`/api/doacoes/${doacao.id}/cancelar-publicacao`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...cabecalhoAuth },
+            body: JSON.stringify({ motivo })
+          });
+          const dados = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            mostrarErro(dados.erro || 'Não foi possível cancelar a doação.');
+            botao.disabled = false;
+            return;
+          }
+          document.getElementById('mensagemErro').textContent = '';
+          await carregarMinhasDoacoes();
+        } catch {
+          mostrarErro('Não foi possível conectar ao servidor para cancelar a doação.');
+          botao.disabled = false;
+        }
+      }
+
       function validarDataValidade(data) {
         if (!data) return 'Informe a data de validade.';
         if (!/^\d{2}\/\d{2}\/\d{4}$/.test(data)) {
@@ -529,6 +600,7 @@
           document.getElementById('tipoAlimento').value = '';
           document.getElementById('quantidade').value = '';
           document.getElementById('validade').value = '';
+          await carregarMinhasDoacoes();
         } catch (erro) {
           alert(erro.message);
           console.error('Erro ao publicar doação:', erro);
