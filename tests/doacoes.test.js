@@ -84,6 +84,33 @@ describe('doação vencida', () => {
     expect(res.body.erro).toMatch(/vencida/);
   });
 
+  it('marca como vencida quando a tentativa de aceite encontra a validade expirada', async () => {
+    const id = await inserirVencida();
+    await request(app)
+      .post(`/api/doacoes/${id}/aceitar`)
+      .set('Authorization', `Bearer ${tokenOng}`)
+      .send({ ong: 'ONG A' })
+      .expect(400);
+
+    const { rows } = await query('SELECT status FROM doacoes WHERE id = ?', [id]);
+    expect(rows[0].status).toBe('vencida');
+  });
+
+  it('filtra uma doação vencida sem esconder outras ainda válidas', async () => {
+    const vencida = await inserirVencida();
+    const valida = await request(app)
+      .post('/api/doacoes')
+      .set('Authorization', `Bearer ${tokenDoador}`)
+      .send({ tipo: 'Sopa', quantidade: '10', validade: dataFuturaEmDias(1) })
+      .expect(201);
+
+    const res = await request(app).get('/api/doacoes').set('Authorization', `Bearer ${tokenOng}`);
+
+    expect(res.body.map((doacao) => doacao.id)).toEqual([valida.body.id]);
+    const { rows } = await query('SELECT status FROM doacoes WHERE id = ?', [vencida]);
+    expect(rows[0].status).toBe('vencida');
+  });
+
   it('continua disponível no último dia da validade', async () => {
     await request(app)
       .post('/api/doacoes')
