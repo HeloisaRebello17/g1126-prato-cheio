@@ -11,7 +11,8 @@
 | [`testes-e-pipeline.md`](testes-e-pipeline.md) | **O que é testado** (incluindo erros), resultados, cobertura, teste de mutação e **ajustes na pipeline** |
 | [`diagramas.md`](diagramas.md), [`diagramas-atividade.md`](diagramas-atividade.md) | Contexto, sequência, estados, componentes e dados; análise crítica dos diagramas gerados por IA |
 | [`validacao.md`](validacao.md) | O produto atende aos critérios de aceite? Com que evidência? (Trabalho 3) |
-| [`refatoracoes.md`](refatoracoes.md) | O que foi refatorado e a evidência (migração para PostgreSQL) |
+| [`refatoracoes.md`](refatoracoes.md) | O que foi refatorado e a evidência (migração para PostgreSQL + 4 refatorações de código) |
+| [`analise-refatoracoes.md`](analise-refatoracoes.md) | Cheiros de código encontrados e por que cada refatoração foi proposta |
 | [`demo.md`](demo.md) | Roteiro reproduzível da demonstração |
 | [`retrospectivas/`](retrospectivas/) | Retrospectiva de cada iteração |
 

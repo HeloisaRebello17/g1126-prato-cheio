@@ -235,6 +235,27 @@ describe('módulo de regras (sem HTTP)', () => {
     await expect(doacoes.aceitar(1, null)).rejects.toThrow('ONG é obrigatória');
   });
 
+  it('aceitar, listarAceitas e cancelar removem espaços nas pontas do nome da ONG', async () => {
+    const id = await publicar(tokenDoador);
+    expect((await doacoes.aceitar(id, '  ONG Teste  ')).ong).toBe('ONG Teste');
+    expect((await doacoes.listarAceitas('  ONG Teste ')).map((d) => d.id)).toEqual([id]);
+    expect((await doacoes.cancelar(id, ' ONG Teste ')).status).toBe('disponivel');
+  });
+
+  it('STATUS usa os mesmos textos gravados no banco', async () => {
+    const id = await publicar(tokenDoador);
+    expect((await doacoes.criarDoacao({ tipo: 'Sopa', quantidade: '1', validade: dataFuturaEmDias(1) })).status).toBe(
+      doacoes.STATUS.DISPONIVEL
+    );
+    expect((await doacoes.aceitar(id, 'ONG')).status).toBe(doacoes.STATUS.ACEITA);
+    expect(doacoes.STATUS).toEqual({
+      DISPONIVEL: 'disponivel',
+      ACEITA: 'aceita',
+      VENCIDA: 'vencida',
+      CANCELADA: 'cancelada'
+    });
+  });
+
   it('criarDoacao devolve o registro completo com id gerado e criada_em', async () => {
     const doacao = await doacoes.criarDoacao({ tipo: 'Sopa', quantidade: '3', validade: dataFuturaEmDias(1) });
     expect(doacao).toMatchObject({ id: expect.any(Number), tipo: 'Sopa', status: 'disponivel' });

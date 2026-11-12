@@ -182,13 +182,6 @@ describe('repositório', () => {
     await repo.marcarVencida(id);
     expect((await repo.buscarPorId(id)).status).toBe('aceita');
   });
-
-  it('buscarAceitaPorOng devolve a coleta aceita da ONG', async () => {
-    const { id } = await repo.inserir(nova);
-    await repo.aceitar(id, 'ONG A');
-    expect((await repo.buscarAceitaPorOng('ONG A')).id).toBe(id);
-    expect(await repo.buscarAceitaPorOng('ONG B')).toBeUndefined();
-  });
 });
 
 afterAll(async () => {

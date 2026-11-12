@@ -9,7 +9,8 @@
 | [`docs/adr/`](docs/adr/) | Registro das decisões arquiteturais (ver tabela abaixo) |
 | [`docs/diagramas.md`](docs/diagramas.md), [`diagramas-atividade.md`](diagramas-atividade.md) | Contexto, sequência, estados, componentes e dados; análise crítica dos diagramas gerados por IA |
 | [`docs/validacao.md`](docs/validacao.md) | O produto atende aos critérios de aceite? Com que evidência? (Trabalho 3) |
-| [`docs/refatoracoes.md`](docs/refatoracoes.md) | O que foi refatorado e a evidência (migração para PostgreSQL) |
+| [`docs/refatoracoes.md`](docs/refatoracoes.md) | O que foi refatorado e a evidência (migração para PostgreSQL + 4 refatorações de código) |
+| [`docs/analise-refatoracoes.md`](docs/analise-refatoracoes.md) | Cheiros de código encontrados e por que cada refatoração foi proposta |
 | [`docs/demo.md`](docs/demo.md) | Roteiro reproduzível da demonstração |
 | [`docs/retrospectivas/`](docs/retrospectivas/) | Retrospectiva de cada iteração |
 
