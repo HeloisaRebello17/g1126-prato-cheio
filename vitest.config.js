@@ -1,3 +1,9 @@
+import { existsSync } from 'node:fs';
+
+// Lê TEST_DATABASE_URL do .env local (ex.: quem mudou a porta por conflito com outro PostgreSQL).
+// Variáveis já definidas no ambiente (CI) têm prioridade.
+if (!process.env.TEST_DATABASE_URL && existsSync('.env')) process.loadEnvFile('.env');
+
 export default {
   test: {
     // Os testes apagam as tabelas a cada caso: usam um banco próprio

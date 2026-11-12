@@ -5,3 +5,4 @@ node_modules/
 
 # artefatos temporários do vitest
 *.timestamp-*
+coverage/

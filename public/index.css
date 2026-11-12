@@ -128,10 +128,15 @@ button:disabled {
   display: none;
 }
 
-#doacoesDisponiveis h2 {
+#doacoesDisponiveis h2,
+#minhasDoacoes h2 {
   margin: 0 0 1rem;
   color: #2e7d32;
   font-size: 1.4rem;
+}
+
+#minhasDoacoes {
+  margin-top: 1.5rem;
 }
 
 #filtroTipo,
