@@ -222,7 +222,7 @@ ainda não existe ou virou texto solto.
 | 5 | Medir **tempo entre publicação e coleta** (métrica do experimento em `analise.md`) | Só `criada_em`; não há `aceita_em` nem `coletada_em` | A métrica de sucesso do piloto (−30% no tempo publicação → coleta) **não pode ser calculada** com os dados guardados | Adicionar `aceita_em` e `coletada_em` |
 | 6 | `quantidade` serve para estimar refeições | `quantidade TEXT` livre ("10 porções", "5 kg") | Não dá para somar refeições entregues (métrica complementar) | Separar em `quantidade NUMERIC` + `unidade` quando a métrica for priorizada |
 | 7 | — | `criada_em DEFAULT (datetime('now'))` | Função específica do SQLite e em UTC; quebra na troca para PostgreSQL **Resolvido na migração (U3):** `TIMESTAMPTZ DEFAULT now()` — ver [ADR 0001](adr/0001-migracao-sqlite-para-postgresql.md) |
-| 8 | — | `repositorio.buscarAceitaPorOng` existe e ninguém chama | Código morto que sugere uma regra ("uma ONG só pode ter uma doação aceita"?) que não está no caso | Decidir com o grupo: virar história ou remover |
+| 8 | — | `repositorio.buscarAceitaPorOng` existe e ninguém chama | Código morto que sugere uma regra ("uma ONG só pode ter uma doação aceita"?) que não está no caso | **Resolvido:** removido (ver [refatoracoes.md](refatoracoes.md), Refatoração 4) |
 
 **Conclusão do confronto:** o código cobre bem a disputa entre ONGs (o caminho feliz + a falha
 mais óbvia), mas **o modelo de dados não enxerga o tempo**: não sabe quando a doação vence de fato,

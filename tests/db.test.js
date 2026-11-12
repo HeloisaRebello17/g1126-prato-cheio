@@ -1,6 +1,6 @@
 // Camada de dados: contrato de query(), schema e restrições do PostgreSQL.
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
-import { encerrar, limparBanco, migrar, query } from '../src/db.js';
+import { MIGRACOES, encerrar, limparBanco, migrar, query } from '../src/db.js';
 import * as repo from '../src/repositorio.js';
 
 beforeEach(async () => {
@@ -65,6 +65,63 @@ describe('migrar() e limparBanco()', () => {
     expect(rows.map((r) => r.table_name)).toEqual(['doacoes', 'usuarios']);
   });
 
+  it('registra cada migração aplicada, em ordem, em schema_migracoes', async () => {
+    const { rows } = await query('SELECT versao FROM schema_migracoes ORDER BY versao');
+    expect(rows.map((r) => r.versao)).toEqual(MIGRACOES.map((m) => m.versao));
+  });
+
+  it('as versões das migrações são únicas e crescentes', () => {
+    const versoes = MIGRACOES.map((m) => m.versao);
+    expect(versoes).toEqual([...new Set(versoes)].sort((a, b) => a - b));
+  });
+
+  it('migração 2: doacoes.doador_id referencia usuarios e historico_doacao existe', async () => {
+    await expect(
+      query('INSERT INTO doacoes (tipo, quantidade, validade, doador_id) VALUES (?, ?, ?, ?)', [
+        'Arroz',
+        '1',
+        '01/01/2099',
+        999
+      ])
+    ).rejects.toThrow(/foreign key/i);
+    const { rows } = await query(
+      "SELECT column_name FROM information_schema.columns WHERE table_name = 'historico_doacao' ORDER BY ordinal_position"
+    );
+    expect(rows.map((r) => r.column_name)).toEqual([
+      'id',
+      'doacao_id',
+      'status_anterior',
+      'status_novo',
+      'motivo',
+      'registrado_em'
+    ]);
+  });
+
+  it('atualiza um banco criado antes do controle de versões sem perder dados', async () => {
+    // Simula o banco que já existia na main: tabelas da versão 1, sem doador_id, sem histórico.
+    await query('DROP TABLE schema_migracoes, historico_doacao');
+    await query('ALTER TABLE doacoes DROP COLUMN doador_id');
+    await query('INSERT INTO doacoes (tipo, quantidade, validade) VALUES (?, ?, ?)', ['Arroz', '1', '01/01/2099']);
+    await migrar();
+    const { rows } = await query('SELECT doador_id FROM doacoes');
+    expect(rows).toEqual([{ doador_id: null }]);
+    const versoes = await query('SELECT count(*)::int AS total FROM schema_migracoes');
+    expect(versoes.rows[0].total).toBe(MIGRACOES.length);
+  });
+
+  it('desfaz a migração que falha e não a marca como aplicada', async () => {
+    MIGRACOES.push({ versao: 999, nome: 'quebrada', sql: 'CREATE TABLE tabela_parcial (id INT); SELEC 1' });
+    try {
+      await expect(migrar()).rejects.toThrow(/migração 999 \(quebrada\) falhou/);
+    } finally {
+      MIGRACOES.pop();
+    }
+    const tabela = await query("SELECT to_regclass('tabela_parcial') AS existe");
+    expect(tabela.rows[0].existe).toBeNull();
+    const registro = await query('SELECT * FROM schema_migracoes WHERE versao = 999');
+    expect(registro.rows).toHaveLength(0);
+  });
+
   it('limparBanco() apaga os dados e reinicia os ids em 1', async () => {
     await repo.inserir(nova);
     await limparBanco();
@@ -124,13 +181,6 @@ describe('repositório', () => {
     await repo.aceitar(id, 'ONG A');
     await repo.marcarVencida(id);
     expect((await repo.buscarPorId(id)).status).toBe('aceita');
-  });
-
-  it('buscarAceitaPorOng devolve a coleta aceita da ONG', async () => {
-    const { id } = await repo.inserir(nova);
-    await repo.aceitar(id, 'ONG A');
-    expect((await repo.buscarAceitaPorOng('ONG A')).id).toBe(id);
-    expect(await repo.buscarAceitaPorOng('ONG B')).toBeUndefined();
   });
 });
 
