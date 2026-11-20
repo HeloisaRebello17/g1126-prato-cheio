@@ -65,19 +65,39 @@ export async function marcarVencida(id) {
   );
 }
 
-export async function cancelarAceite(id, ong) {
+// H4 — a ONG desiste da coleta: a doação volta a ficar disponível e o histórico registra a
+// mudança com a observação da ONG (opcional), para o estabelecimento saber o que aconteceu.
+// Mesmo padrão de cancelarPeloDoador: status e histórico mudam juntos, num único comando.
+export async function cancelarAceite(id, ong, observacao = null) {
   const { rows } = await query(
-    `UPDATE doacoes
-     SET status = 'disponivel', ong = NULL
-     WHERE id = ? AND status = 'aceita' AND ong = ?
-     RETURNING *`,
-    [id, ong]
+    `WITH atualizada AS (
+       UPDATE doacoes
+       SET status = 'disponivel', ong = NULL
+       WHERE id = ? AND status = 'aceita' AND ong = ?
+       RETURNING *
+     ),
+     registro AS (
+       INSERT INTO historico_doacao (doacao_id, status_anterior, status_novo, motivo)
+       SELECT id, 'aceita', 'disponivel', ? FROM atualizada
+     )
+     SELECT * FROM atualizada`,
+    [id, ong, observacao]
   );
   return rows[0];
 }
 
+// Cada doação vem com o último registro do histórico (ou null), para a tela do estabelecimento
+// mostrar por que a ONG desistiu da coleta ou o motivo do próprio cancelamento.
 export async function listarPublicadasPorDoador(doadorId) {
-  const { rows } = await query('SELECT * FROM doacoes WHERE doador_id = ? ORDER BY id DESC', [doadorId]);
+  const { rows } = await query(
+    `SELECT d.*,
+       (SELECT json_build_object('status_anterior', h.status_anterior, 'status_novo', h.status_novo,
+                                 'motivo', h.motivo, 'registrado_em', h.registrado_em)
+        FROM historico_doacao h WHERE h.doacao_id = d.id
+        ORDER BY h.id DESC LIMIT 1) AS ultimo_historico
+     FROM doacoes d WHERE d.doador_id = ? ORDER BY d.id DESC`,
+    [doadorId]
+  );
   return rows;
 }
 

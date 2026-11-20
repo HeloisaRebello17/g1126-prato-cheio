@@ -1,0 +1,27 @@
+$ docker compose exec postgres psql -U pratocheio -d pratocheio
+# Consultas filtradas pela execução 1795135267824 de scripts/cenarios-integracao.mjs (ver cenarios-http.md)
+
+                                         version                                          
+------------------------------------------------------------------------------------------
+ PostgreSQL 16.15 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit
+(1 row)
+
+ versao |                          nome                          |          aplicada_em          
+--------+--------------------------------------------------------+-------------------------------
+      1 | schema inicial (usuarios e doacoes)                    | 2026-11-18 23:02:52.770567+00
+      2 | H5c: doação guarda quem publicou e histórico de status | 2026-11-18 23:02:52.816091+00
+(2 rows)
+
+ id |         tipo         |   status   |         ong         |  validade  
+----+----------------------+------------+---------------------+------------
+ 15 | Arroz 1795135267824  | aceita     | ONG B 1795135267824 | 22/11/2026
+ 16 | Feijão 1795135267824 | disponivel |                     | 22/11/2026
+ 17 | Pão 1795135267824    | cancelada  | ONG A 1795135267824 | 20/11/2026
+(3 rows)
+
+ doacao_id |        tipo         | status_anterior | status_novo |            motivo             
+-----------+---------------------+-----------------+-------------+-------------------------------
+        15 | Arroz 1795135267824 | aceita          | disponivel  | Sem veículo para buscar hoje
+        17 | Pão 1795135267824   | aceita          | cancelada   | ONG não apareceu para retirar
+(2 rows)
+

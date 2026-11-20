@@ -66,7 +66,7 @@ describe('o que as rotas repassam para as regras', () => {
     await request(app).get('/api/minhas-coletas').set(auth('ong'));
     await request(app).post('/api/doacoes').set(auth('doador')).send({ tipo: 'Pão' });
     await request(app).post('/api/doacoes/7/aceitar').set(auth('ong'));
-    await request(app).post('/api/doacoes/7/cancelar').set(auth('ong'));
+    await request(app).post('/api/doacoes/7/cancelar').set(auth('ong')).send({ observacao: 'sem carro' });
     await request(app).get('/api/minhas-doacoes').set(auth('doador'));
     await request(app).post('/api/doacoes/7/cancelar-publicacao').set(auth('doador')).send({ motivo: 'estragou' });
     await request(app).get('/api/doacoes/7/historico').set(auth('doador'));
@@ -76,7 +76,7 @@ describe('o que as rotas repassam para as regras', () => {
     expect(doacoes.listarAceitas).toHaveBeenCalledWith('ONG');
     expect(doacoes.criarDoacao).toHaveBeenCalledWith({ tipo: 'Pão' }, idDoador);
     expect(doacoes.aceitar).toHaveBeenCalledWith('7', 'ONG');
-    expect(doacoes.cancelar).toHaveBeenCalledWith('7', 'ONG');
+    expect(doacoes.cancelar).toHaveBeenCalledWith('7', 'ONG', 'sem carro');
     expect(doacoes.listarPublicadas).toHaveBeenCalledWith(idDoador);
     expect(doacoes.cancelarPeloDoador).toHaveBeenCalledWith('7', idDoador, 'estragou');
     expect(doacoes.historico).toHaveBeenCalledWith('7', idDoador);

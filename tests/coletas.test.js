@@ -85,6 +85,76 @@ describe('cancelar coleta', () => {
   });
 });
 
+describe('cancelar coleta com observação (H4)', () => {
+  const comToken = (token) => ({ Authorization: `Bearer ${token}` });
+
+  async function aceitarECancelar(corpo) {
+    const id = await publicar(tokenDoador);
+    await request(app).post(`/api/doacoes/${id}/aceitar`).set(comToken(tokenOng)).expect(200);
+    const res = await request(app).post(`/api/doacoes/${id}/cancelar`).set(comToken(tokenOng)).send(corpo);
+    return { id, res };
+  }
+
+  const historico = (id) => request(app).get(`/api/doacoes/${id}/historico`).set(comToken(tokenDoador));
+
+  it('registra a observação no histórico e o estabelecimento a vê em minhas doações', async () => {
+    const { id, res } = await aceitarECancelar({ observacao: '  Sem veículo hoje  ' });
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('disponivel');
+
+    expect((await historico(id)).body).toMatchObject([
+      { status_anterior: 'aceita', status_novo: 'disponivel', motivo: 'Sem veículo hoje' }
+    ]);
+
+    const minhas = await request(app).get('/api/minhas-doacoes').set(comToken(tokenDoador)).expect(200);
+    expect(minhas.body[0]).toMatchObject({
+      id,
+      status: 'disponivel',
+      ultimo_historico: { status_anterior: 'aceita', status_novo: 'disponivel', motivo: 'Sem veículo hoje' }
+    });
+  });
+
+  it.each([[{}], [{ observacao: '' }], [{ observacao: '   ' }], [{ observacao: null }]])(
+    'a observação é opcional: %j cancela e registra sem observação',
+    async (corpo) => {
+      const { id, res } = await aceitarECancelar(corpo);
+      expect(res.status).toBe(200);
+      expect((await historico(id)).body).toMatchObject([{ status_novo: 'disponivel', motivo: null }]);
+    }
+  );
+
+  it.each([
+    [{ observacao: 123 }, 'observação deve ser um texto'],
+    [{ observacao: ['a'] }, 'observação deve ser um texto'],
+    [{ observacao: 'x'.repeat(501) }, 'observação deve ter no máximo 500 caracteres']
+  ])('recusa observação inválida %#, sem mudar a doação', async (corpo, erro) => {
+    const { id, res } = await aceitarECancelar(corpo);
+    expect(res.status).toBe(400);
+    expect(res.body.erro).toBe(erro);
+    const coletas = await request(app).get('/api/minhas-coletas').set(comToken(tokenOng));
+    expect(coletas.body.map((d) => d.id)).toEqual([id]);
+    expect((await historico(id)).body).toEqual([]);
+  });
+
+  it('cancelamento recusado (coleta de outra ONG) não grava histórico', async () => {
+    const id = await publicar(tokenDoador);
+    await request(app).post(`/api/doacoes/${id}/aceitar`).set(comToken(tokenOng)).expect(200);
+    const outraOng = await cadastrarELogar('Outra ONG', 'outra2@teste.com', 'ong');
+    await request(app)
+      .post(`/api/doacoes/${id}/cancelar`)
+      .set(comToken(outraOng))
+      .send({ observacao: 'não é minha' })
+      .expect(400);
+    expect((await historico(id)).body).toEqual([]);
+  });
+
+  it('minhas doações traz ultimo_historico nulo quando nada foi registrado', async () => {
+    const id = await publicar(tokenDoador);
+    const minhas = await request(app).get('/api/minhas-doacoes').set(comToken(tokenDoador)).expect(200);
+    expect(minhas.body).toMatchObject([{ id, ultimo_historico: null }]);
+  });
+});
+
 afterAll(async () => {
   await encerrar();
 });

@@ -1,4 +1,4 @@
-# Documentação de testes e pipeline — Prato Cheio
+# Documentação de testes e pipeline - Prato Cheio
 
 Este documento descreve **o que é testado, como, e por que cada teste existe**, incluindo as situações de
 erro, e **os ajustes feitos na pipeline de CI**. Decisão registrada no
@@ -23,28 +23,34 @@ erro, e **os ajustes feitos na pipeline de CI**. Decisão registrada no
 |---|:--:|---|
 | `tests/app.test.js` | 1 | A aplicação responde em `/api/saude` |
 | `tests/auth.test.js` | 7 | Cadastro, login, e-mail `.com`, proteção por perfil |
-| `tests/doacoes.test.js` | 16 | Publicar, filtrar, doação vencida, validação de campos |
-| `tests/coletas.test.js` | 6 | Aceitar, aceite duplicado, 2 ONGs simultâneas, cancelar |
+| `tests/doacoes.test.js` | 18 | Publicar, filtrar, doação vencida, validação de campos |
+| `tests/coletas.test.js` | 16 | Aceitar, cancelar, cancelar com observação (H4): opcional, inválida, histórico |
 | `tests/erros-api.test.js` | 36 | Erros de autenticação, autorização e entrada; entradas hostis |
-| `tests/doacoes-regras.test.js` | 49 | Valores de borda e ciclo de vida das doações |
+| `tests/doacoes-regras.test.js` | 51 | Valores de borda e ciclo de vida das doações |
 | `tests/concorrencia.test.js` | 4 | Disputa simultânea pelo aceite (RNF2) |
-| `tests/db.test.js` | 21 | Contrato de `query()`, schema e restrições |
-| **Total** | **140** | 30 já existiam; 110 são novos |
+| `tests/db.test.js` | 25 | Contrato de `query()`, schema, restrições e migrações |
+| `tests/cancelamento-doador.test.js` | 16 | H5c — cancelamento pelo estabelecimento com motivo e histórico |
+| `tests/rotas.test.js` | 18 | Rotas e respostas da API |
+| `tests/integracao.test.js` | 4 | **Trabalho 4:** cenários que cruzam várias histórias e usuários + regressão de rota duplicada ([`integracao.md`](integracao.md)) |
+| **Total** | **196** | Saída completa em [`evidencias/npm-run-ci.txt`](evidencias/npm-run-ci.txt) |
 
 Cobertura de `src/` (excluindo `server.js`, que é verificado pelo passo "Verificar se a aplicação sobe"
 do CI):
 
 | Módulo | Linhas | Instruções | Funções | Ramos |
 |---|:--:|:--:|:--:|:--:|
-| `app.js` | 94,1% | 94,4% | 100% | 100% |
+| `app.js` | 100% | 100% | 100% | 100% |
 | `autenticacao.js` | 100% | 97,7% | 100% | 97,5% |
-| `db.js` | 95,5% | 88,5% | 87,5% | 76,5% |
+| `db.js` | 97,5% | 93,5% | 80% | 84,2% |
 | `doacoes.js` | 100% | 100% | 100% | 100% |
 | `repositorio.js` | 100% | 100% | 100% | 100% |
-| **Total** | **98,1%** | **96,7%** | **97,9%** | **95,8%** |
+| **Total** | **99,5%** | **98,4%** | **96,8%** | **97,5%** |
 
-O que ficou sem cobertura: dois `catch` de rotas em `app.js` (listagem e minhas-coletas, só dispararia com
-falha do banco) e a mensagem de erro de `DATABASE_URL` ausente em `db.js`, que roda na importação do módulo.
+*Medição de 18/11/2026, depois da integração (Trabalho 4).* `app.js` chegou a 100% porque a correção
+do merge removeu as rotas duplicadas da H5c, cujos `catch` nunca executavam
+([`integracao.md` §5](integracao.md#5-defeito-de-integração-encontrado-e-corrigido)). O que ainda fica
+sem cobertura está em `db.js` (mensagem de `DATABASE_URL` ausente, que roda na importação do módulo) e
+uma linha de `autenticacao.js`.
 
 ## 3. Situações de erro cobertas
 
