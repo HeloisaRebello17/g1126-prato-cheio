@@ -57,7 +57,7 @@ passava nos próprios testes, mas ninguém tinha verificado **o fluxo inteiro** 
 | #15 | `test/h5a-criterios-aceite` | Testes dos critérios da H5a | 05/11 |
 | #16 | `Thomas` | **Refatoração** (4 melhorias) | 12/11 |
 | #17 | `docs/revisao-de-codigo-grupo` | Revisão de código de outra equipe | 12/11 |
-| — | `integracao/trabalho-4` | Este trabalho: correção do defeito de merge, testes e evidências de integração | 18/11 |
+| — | `developers/integracao` | Este trabalho: correção do defeito de merge, observação no cancelamento da coleta, testes e evidências de integração | 19/11 |
 
 ---
 
