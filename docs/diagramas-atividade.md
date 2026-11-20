@@ -179,7 +179,7 @@ stateDiagram-v2
 | início → `disponivel` | Estabelecimento | H1: campos obrigatórios, validade não pode estar no passado | ✅ | `doacoes.criarDoacao` |
 | `disponivel` → `aceita` | ONG | Aceite exclusivo (decisão #2) | ✅ | `repositorio.aceitar` (`UPDATE ... WHERE status = 'disponivel'`) |
 | `disponivel` → `vencida` | Sistema | H5a | ✅ | `doacoes.listarDisponiveis` e `doacoes.aceitar` |
-| `aceita` → `disponivel` (cancelamento) | ONG | H4 | ✅ | `doacoes.cancelar` e `repositorio.cancelarAceite` |
+| `aceita` → `disponivel` (cancelamento) | ONG | H4: observação opcional, gravada em `historico_doacao` (Trabalho 4) | ✅ | `doacoes.cancelar` e `repositorio.cancelarAceite` |
 | `aceita` → `disponivel` (não comparecimento) | Sistema ou estabelecimento | H5b | ❌ | — |
 | `aceita` → `coletada` | Voluntário | Fluxo principal do caso | ❌ | — |
 | `aceita` → `vencida` | Sistema | Perecível se perde se não for coletado | ❌ | `marcarVencida` só atua sobre `disponivel` |

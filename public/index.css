@@ -162,6 +162,13 @@ li {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
 }
 
+li .observacao {
+  display: block;
+  margin-top: 0.3rem;
+  color: #555555;
+  font-size: 0.9rem;
+}
+
 li button {
   width: auto;
   min-width: 100px;

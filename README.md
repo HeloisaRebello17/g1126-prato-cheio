@@ -7,12 +7,13 @@
 | [`docs/analise.md`](docs/analise.md) | Qual é o problema, quem são os stakeholders, quais histórias, regras, riscos e hipótese (Trabalho 1) |
 | [`docs/projeto.md`](docs/projeto.md) | Quais decisões de projeto foram tomadas, os **requisitos não funcionais (RNF1–RNF3)**, seus impactos e tensões (Trabalho 2) |
 | [`docs/adr/`](docs/adr/) | Registro das decisões arquiteturais (ver tabela abaixo) |
-| [`docs/diagramas.md`](docs/diagramas.md), [`diagramas-atividade.md`](diagramas-atividade.md) | Contexto, sequência, estados, componentes e dados; análise crítica dos diagramas gerados por IA |
+| [`docs/diagramas.md`](docs/diagramas.md), [`diagramas-atividade.md`](docs/diagramas-atividade.md) | Contexto, sequência, estados, componentes e dados; análise crítica dos diagramas gerados por IA |
 | [`docs/validacao.md`](docs/validacao.md) | O produto atende aos critérios de aceite? Com que evidência? (Trabalho 3) |
+| [`docs/integracao.md`](docs/integracao.md) | Como os incrementos foram integrados: pesquisa sobre CI/PR/merge, conflitos, defeito de merge corrigido e evidências |
 | [`docs/refatoracoes.md`](docs/refatoracoes.md) | O que foi refatorado e a evidência (migração para PostgreSQL + 4 refatorações de código) |
 | [`docs/analise-refatoracoes.md`](docs/analise-refatoracoes.md) | Cheiros de código encontrados e por que cada refatoração foi proposta |
 | [`docs/demo.md`](docs/demo.md) | Roteiro reproduzível da demonstração |
-| [`docs/retrospectivas/`](docs/retrospectivas/) | Retrospectiva de cada iteração |
+| [`docs/retrospectivas/`](docs/retrospectivas/) | Retrospectiva de cada iteração (a da integração: [`u2-integracao.md`](docs/retrospectivas/u2-integracao.md)) |
 
 ## ADRs
 
@@ -60,6 +61,7 @@ cp .env.example .env      # porta 5432 ocupada? veja POSTGRES_PORTA no .env.exam
 npm install
 npm start                 # aplica as migrações pendentes e abre http://localhost:3001
 npm run ci                # testes + cobertura (usa pratocheio_test)
+node scripts/cenarios-integracao.mjs  
 ```
 
 ## Requisitos não funcionais e onde cada um é decidido, implementado e testado

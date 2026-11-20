@@ -6,3 +6,6 @@ node_modules/
 # artefatos temporários do vitest
 *.timestamp-*
 coverage/
+
+# resto do SQLite (antes do ADR 0001)
+*.sqlite

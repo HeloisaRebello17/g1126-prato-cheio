@@ -1,6 +1,8 @@
 import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default [
+  // Relatório gerado pelo `npm run test:cobertura`: não é código do projeto.
+  { ignores: ['coverage/**'] },
   {
     files: ['src/**/*.js', 'tests/**/*.js'],
     languageOptions: {

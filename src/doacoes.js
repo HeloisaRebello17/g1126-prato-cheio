@@ -112,15 +112,24 @@ export async function aceitar(id, ong) {
   return aceita;
 }
 
-export async function cancelar(id, ong) {
+export const MOTIVO_MAXIMO = 500;
+
+function normalizarObservacao(observacao) {
+  if (observacao === undefined || observacao === null) return null;
+  if (typeof observacao !== 'string') throw new Error('observação deve ser um texto');
+  const texto = observacao.trim();
+  if (texto.length > MOTIVO_MAXIMO) throw new Error(`observação deve ter no máximo ${MOTIVO_MAXIMO} caracteres`);
+  return texto || null;
+}
+
+export async function cancelar(id, ong, observacao) {
   const nomeOng = exigirOng(ong);
+  const texto = normalizarObservacao(observacao);
   if (!idValido(id)) throw new Error('coleta não encontrada para esta ONG');
-  const cancelada = await repo.cancelarAceite(id, nomeOng);
+  const cancelada = await repo.cancelarAceite(id, nomeOng, texto);
   if (!cancelada) throw new Error('coleta não encontrada para esta ONG');
   return cancelada;
 }
-
-export const MOTIVO_MAXIMO = 500;
 
 export async function listarPublicadas(doadorId) {
   return repo.listarPublicadasPorDoador(doadorId);
