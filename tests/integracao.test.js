@@ -77,7 +77,6 @@ describe('Cenário 2 — doação aceita é cancelada pelo estabelecimento com m
       { status_anterior: 'aceita', status_novo: 'cancelada', motivo: 'ONG não apareceu para retirar' }
     ]);
 
-
     const outroDoador = await cadastrarELogar('Padaria 2', 'padaria2@teste.com', 'doador');
     await request(app).get(`/api/doacoes/${id}/historico`).set(comToken(outroDoador)).expect(404);
   });
