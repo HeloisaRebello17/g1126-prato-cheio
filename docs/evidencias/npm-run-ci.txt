@@ -1,0 +1,226 @@
+$ npm run check && npx vitest run --coverage --reporter=verbose 
+
+> prato-cheio@0.1.0 check
+> node --check src/app.js && node --check src/autenticacao.js && node --check src/db.js && node --check src/doacoes.js && node --check src/repositorio.js && node --check src/server.js
+
+
+ RUN  v5.0.1 C:/Users/Michelle/Downloads/g1126-prato-cheio
+      Coverage enabled with v8
+
+ ✓ tests/doacoes-regras.test.js > publicar — validade > recusa formato inválido: formato ISO 1053ms
+ ✓ tests/doacoes-regras.test.js > publicar — validade > recusa formato inválido: dia sem zero à esquerda 922ms
+ ✓ tests/doacoes-regras.test.js > publicar — validade > recusa formato inválido: texto qualquer 749ms
+ ✓ tests/doacoes-regras.test.js > publicar — validade > recusa formato inválido: vazio 711ms
+ ✓ tests/doacoes-regras.test.js > publicar — validade > recusa formato inválido: número em vez de texto 809ms
+ ✓ tests/doacoes-regras.test.js > publicar — validade > recusa data inexistente no calendário: 31/02/2099 (dia 31 de fevereiro) 1151ms
+ ✓ tests/doacoes-regras.test.js > publicar — validade > recusa data inexistente no calendário: 00/10/2099 (dia zero) 728ms
+ ✓ tests/doacoes-regras.test.js > publicar — validade > recusa data inexistente no calendário: 32/01/2099 (dia 32) 697ms
+ ✓ tests/doacoes-regras.test.js > publicar — validade > recusa data inexistente no calendário: 15/13/2099 (mês 13) 947ms
+ ✓ tests/doacoes-regras.test.js > publicar — validade > aceita 29/02 em ano bissexto e recusa em ano comum 875ms
+ ✓ tests/doacoes-regras.test.js > publicar — validade > não grava nada quando a validação falha 800ms
+ ✓ tests/doacoes-regras.test.js > publicar — tipo e quantidade > aceita quantidade numérica: "1,5" 746ms
+ ✓ tests/doacoes-regras.test.js > publicar — tipo e quantidade > aceita quantidade numérica: "2.5" 767ms
+ ✓ tests/doacoes-regras.test.js > publicar — tipo e quantidade > aceita quantidade numérica: "10" 687ms
+ ✓ tests/doacoes-regras.test.js > publicar — tipo e quantidade > aceita quantidade numérica: " 7 " 533ms
+ ✓ tests/doacoes-regras.test.js > publicar — tipo e quantidade > recusa quantidade que não é texto (número) 573ms
+ ✓ tests/doacoes-regras.test.js > publicar — tipo e quantidade > recusa quantidade que não é texto (booleano) 511ms
+ ✓ tests/doacoes-regras.test.js > publicar — tipo e quantidade > recusa quantidade que não é texto (objeto) 567ms
+ ✓ tests/doacoes-regras.test.js > publicar — tipo e quantidade > recusa quantidade que não é texto (nulo) 774ms
+ ✓ tests/doacoes-regras.test.js > publicar — tipo e quantidade > recusa tipo que não é texto (número) 653ms
+ ✓ tests/doacoes-regras.test.js > publicar — tipo e quantidade > recusa tipo que não é texto (lista) 578ms
+ ✓ tests/doacoes-regras.test.js > publicar — tipo e quantidade > recusa tipo que não é texto (nulo) 480ms
+ ✓ tests/doacoes-regras.test.js > publicar — tipo e quantidade > remove espaços nas pontas de tipo e quantidade, e devolve status disponivel 550ms
+ ✓ tests/doacoes-regras.test.js > aceitar — ids inválidos e inexistentes > responde "não encontrada" para id inexistente 1331ms
+ ✓ tests/doacoes-regras.test.js > aceitar — ids inválidos e inexistentes > responde "não encontrada" para id negativo 777ms
+ ✓ tests/doacoes-regras.test.js > aceitar — ids inválidos e inexistentes > responde "não encontrada" para id decimal 678ms
+ ✓ tests/doacoes-regras.test.js > aceitar — ids inválidos e inexistentes > responde "não encontrada" para id acima de int4 711ms
+ ✓ tests/doacoes-regras.test.js > aceitar — ids inválidos e inexistentes > responde "não encontrada" para id texto 707ms
+ ✓ tests/doacoes-regras.test.js > aceitar — ids inválidos e inexistentes > recusa a segunda tentativa da mesma ONG sobre a mesma doação 626ms
+ ✓ tests/doacoes-regras.test.js > aceitar — ids inválidos e inexistentes > usa o nome da ONG autenticada, ignorando o nome enviado no corpo 632ms
+ ✓ tests/doacoes-regras.test.js > aceitar — doação vencida (expiração sob demanda) > marca como vencida ao tentar aceitar uma doação disponível fora da validade 585ms
+ ✓ tests/doacoes-regras.test.js > aceitar — doação vencida (expiração sob demanda) > continua recusando uma doação que já estava marcada como vencida 639ms
+ ✓ tests/doacoes-regras.test.js > aceitar — doação vencida (expiração sob demanda) > lista só as válidas quando há vencidas e válidas juntas 651ms
+ ✓ tests/doacoes-regras.test.js > cancelar — casos de erro e ciclo completo > recusa cancelar uma doação que ninguém aceitou 871ms
+ ✓ tests/doacoes-regras.test.js > cancelar — casos de erro e ciclo completo > recusa cancelar id inválido ou inexistente: abc 635ms
+ ✓ tests/doacoes-regras.test.js > cancelar — casos de erro e ciclo completo > recusa cancelar id inválido ou inexistente: -5 576ms
+ ✓ tests/doacoes-regras.test.js > cancelar — casos de erro e ciclo completo > recusa cancelar id inválido ou inexistente: 99999 604ms
+ ✓ tests/doacoes-regras.test.js > cancelar — casos de erro e ciclo completo > recusa cancelar id inválido ou inexistente: 2147483648 970ms
+ ✓ tests/doacoes-regras.test.js > cancelar — casos de erro e ciclo completo > recusa cancelar duas vezes a mesma coleta 844ms
+ ✓ tests/doacoes-regras.test.js > cancelar — casos de erro e ciclo completo > depois do cancelamento, outra ONG consegue aceitar a mesma doação 1291ms
+ ✓ tests/doacoes-regras.test.js > cancelar — casos de erro e ciclo completo > a doação cancelada limpa o nome da ONG no banco 711ms
+ ✓ tests/doacoes-regras.test.js > minhas coletas — isolamento entre ONGs > cada ONG vê somente as coletas que aceitou 848ms
+ ✓ tests/doacoes-regras.test.js > minhas coletas — isolamento entre ONGs > devolve lista vazia quando a ONG não aceitou nada 658ms
+ ✓ tests/doacoes-regras.test.js > listagem — filtro por tipo > ignora maiúsculas, minúsculas e espaços ao redor do termo 588ms
+ ✓ tests/doacoes-regras.test.js > listagem — filtro por tipo > devolve lista vazia, e não erro, quando nenhum tipo corresponde 737ms
+ ✓ tests/doacoes-regras.test.js > listagem — filtro por tipo > mantém a ordem de publicação 735ms
+ ✓ tests/doacoes-regras.test.js > módulo de regras (sem HTTP) > listarAceitas recusa nome de ONG vazio ou que não é texto 791ms
+ ✓ tests/doacoes-regras.test.js > módulo de regras (sem HTTP) > cancelar e aceitar recusam ONG vazia antes de consultar o banco 653ms
+ ✓ tests/doacoes-regras.test.js > módulo de regras (sem HTTP) > aceitar, listarAceitas e cancelar removem espaços nas pontas do nome da ONG 648ms
+ ✓ tests/doacoes-regras.test.js > módulo de regras (sem HTTP) > STATUS usa os mesmos textos gravados no banco 827ms
+ ✓ tests/doacoes-regras.test.js > módulo de regras (sem HTTP) > criarDoacao devolve o registro completo com id gerado e criada_em 1181ms
+ ✓ tests/erros-api.test.js > autenticação — token ausente ou inválido > responde 401 em /api/me: sem cabeçalho Authorization 824ms
+ ✓ tests/erros-api.test.js > autenticação — token ausente ou inválido > responde 401 em /api/me: esquema diferente de Bearer 638ms
+ ✓ tests/erros-api.test.js > autenticação — token ausente ou inválido > responde 401 em /api/me: Bearer sem token 783ms
+ ✓ tests/erros-api.test.js > autenticação — token ausente ou inválido > responde 401 em /api/me: token inexistente 812ms
+ ✓ tests/erros-api.test.js > autenticação — token ausente ou inválido > protege get /api/doacoes 636ms
+ ✓ tests/erros-api.test.js > autenticação — token ausente ou inválido > protege get /api/minhas-coletas 662ms
+ ✓ tests/erros-api.test.js > autenticação — token ausente ou inválido > protege post /api/doacoes 618ms
+ ✓ tests/erros-api.test.js > autenticação — token ausente ou inválido > protege post /api/doacoes/1/aceitar 748ms
+ ✓ tests/erros-api.test.js > autenticação — token ausente ou inválido > protege post /api/doacoes/1/cancelar 635ms
+ ✓ tests/erros-api.test.js > autenticação — token ausente ou inválido > devolve somente dados públicos do usuário em /api/me 636ms
+ ✓ tests/erros-api.test.js > autorização — perfil sem permissão > doador não lista, aceita nem cancela doações 900ms
+ ✓ tests/erros-api.test.js > autorização — perfil sem permissão > ONG não publica doações 840ms
+ ✓ tests/erros-api.test.js > autorização — perfil sem permissão > a recusa por perfil não altera o estado da doação 795ms
+ ✓ tests/erros-api.test.js > cadastro — validação de entrada > recusa com 400: nome ausente 533ms
+ ✓ tests/erros-api.test.js > cadastro — validação de entrada > recusa com 400: nome só com espaços 706ms
+ ✓ tests/erros-api.test.js > cadastro — validação de entrada > recusa com 400: nome que não é texto 591ms
+ ✓ tests/erros-api.test.js > cadastro — validação de entrada > recusa com 400: e-mail ausente 651ms
+ ✓ tests/erros-api.test.js > cadastro — validação de entrada > recusa com 400: senha ausente 709ms
+ ✓ tests/erros-api.test.js > cadastro — validação de entrada > recusa com 400: perfil ausente 628ms
+ ✓ tests/erros-api.test.js > cadastro — validação de entrada > recusa com 400: senha com menos de 6 caracteres 644ms
+ ✓ tests/erros-api.test.js > cadastro — validação de entrada > recusa com 400: perfil desconhecido 666ms
+ ✓ tests/erros-api.test.js > cadastro — validação de entrada > recusa corpo vazio e corpo que não é objeto 518ms
+ ✓ tests/erros-api.test.js > cadastro — validação de entrada > trata e-mail sem diferenciar maiúsculas e minúsculas 829ms
+ ✓ tests/erros-api.test.js > cadastro — validação de entrada > nunca grava a senha em texto puro 697ms
+ ✓ tests/erros-api.test.js > login — validação de entrada > recusa com 401: corpo vazio 878ms
+ ✓ tests/erros-api.test.js > login — validação de entrada > recusa com 401: senha ausente 561ms
+ ✓ tests/erros-api.test.js > login — validação de entrada > recusa com 401: e-mail fora do formato .com 818ms
+ ✓ tests/erros-api.test.js > login — validação de entrada > recusa com 401: e-mail inexistente 784ms
+ ✓ tests/erros-api.test.js > login — validação de entrada > recusa com 401: senha incorreta 683ms
+ ✓ tests/erros-api.test.js > login — validação de entrada > usa a mesma mensagem para e-mail inexistente e senha errada (não revela quais e-mails existem) 818ms
+ ✓ tests/erros-api.test.js > login — validação de entrada > aceita o e-mail com espaços e maiúsculas 759ms
+ ✓ tests/erros-api.test.js > entradas hostis e rotas inexistentes > responde 400 a JSON malformado, sem criar registros 639ms
+ ✓ tests/erros-api.test.js > entradas hostis e rotas inexistentes > responde 404 a uma rota inexistente 613ms
+ ✓ tests/erros-api.test.js > entradas hostis e rotas inexistentes > trata texto de injeção de SQL no filtro como dado, não como comando 707ms
+ ✓ tests/erros-api.test.js > entradas hostis e rotas inexistentes > trata texto de injeção de SQL nos campos da doação como dado 1246ms
+ ✓ tests/erros-api.test.js > entradas hostis e rotas inexistentes > ignora parâmetro de filtro repetido em vez de quebrar 676ms
+ ✓ tests/rotas.test.js > get /api/doacoes > responde 200 com o resultado das regras 782ms
+ ✓ tests/rotas.test.js > get /api/doacoes > responde 400 com a mensagem quando as regras falham 624ms
+ ✓ tests/rotas.test.js > get /api/minhas-coletas > responde 200 com o resultado das regras 600ms
+ ✓ tests/rotas.test.js > get /api/minhas-coletas > responde 400 com a mensagem quando as regras falham 600ms
+ ✓ tests/rotas.test.js > post /api/doacoes > responde 201 com o resultado das regras 654ms
+ ✓ tests/rotas.test.js > post /api/doacoes > responde 400 com a mensagem quando as regras falham 566ms
+ ✓ tests/rotas.test.js > post /api/doacoes/7/aceitar > responde 200 com o resultado das regras 508ms
+ ✓ tests/rotas.test.js > post /api/doacoes/7/aceitar > responde 400 com a mensagem quando as regras falham 620ms
+ ✓ tests/rotas.test.js > post /api/doacoes/7/cancelar > responde 200 com o resultado das regras 597ms
+ ✓ tests/rotas.test.js > post /api/doacoes/7/cancelar > responde 400 com a mensagem quando as regras falham 554ms
+ ✓ tests/rotas.test.js > get /api/minhas-doacoes > responde 200 com o resultado das regras 678ms
+ ✓ tests/rotas.test.js > get /api/minhas-doacoes > responde 400 com a mensagem quando as regras falham 833ms
+ ✓ tests/rotas.test.js > post /api/doacoes/7/cancelar-publicacao > responde 200 com o resultado das regras 645ms
+ ✓ tests/rotas.test.js > post /api/doacoes/7/cancelar-publicacao > responde 400 com a mensagem quando as regras falham 698ms
+ ✓ tests/rotas.test.js > get /api/doacoes/7/historico > responde 200 com o resultado das regras 969ms
+ ✓ tests/rotas.test.js > get /api/doacoes/7/historico > responde 404 com a mensagem quando as regras falham 637ms
+ ✓ tests/rotas.test.js > o que as rotas repassam para as regras > cancelar-publicacao responde 404 quando a doação não é encontrada 622ms
+ ✓ tests/rotas.test.js > o que as rotas repassam para as regras > repassa id da URL, usuário autenticado, corpo e filtro 615ms
+ ✓ tests/doacoes.test.js > publicar e listar doações > mostra a doação publicada na lista de disponíveis 1074ms
+ ✓ tests/doacoes.test.js > publicar e listar doações > recusa doação sem os campos obrigatórios 721ms
+ ✓ tests/doacoes.test.js > publicar e listar doações > recusa doação com validade anterior à data de hoje 644ms
+ ✓ tests/doacoes.test.js > filtro de doações > lista somente doações do tipo informado 916ms
+ ✓ tests/doacoes.test.js > doação vencida > não aparece na lista de disponíveis 813ms
+ ✓ tests/doacoes.test.js > doação vencida > fica registrada com status vencida 992ms
+ ✓ tests/doacoes.test.js > doação vencida > não pode ser aceita por uma ONG 922ms
+ ✓ tests/doacoes.test.js > doação vencida > marca como vencida quando a tentativa de aceite encontra a validade expirada 953ms
+ ✓ tests/doacoes.test.js > doação vencida > filtra uma doação vencida sem esconder outras ainda válidas 609ms
+ ✓ tests/doacoes.test.js > doação vencida > continua disponível no último dia da validade 620ms
+ ✓ tests/doacoes.test.js > validação dos campos da doação > recusa quantidade inválida: 0 752ms
+ ✓ tests/doacoes.test.js > validação dos campos da doação > recusa quantidade inválida: -1 863ms
+ ✓ tests/doacoes.test.js > validação dos campos da doação > recusa quantidade inválida: 10kg 704ms
+ ✓ tests/doacoes.test.js > validação dos campos da doação > recusa quantidade inválida: @@@ 1016ms
+ ✓ tests/doacoes.test.js > validação dos campos da doação > recusa quantidade inválida:     754ms
+ ✓ tests/doacoes.test.js > validação dos campos da doação > recusa tipo composto somente por espaços 658ms
+ ✓ tests/doacoes.test.js > validação dos campos da doação > recusa ONG composta somente por espaços 647ms
+ ✓ tests/doacoes.test.js > validação dos campos da doação > responde "não encontrada" para id que não é número 548ms
+ ✓ tests/cancelamento-doador.test.js > estabelecimento cancela uma doação com motivo (H5c) > cancela uma doação disponível e ela sai da lista das ONGs 1114ms
+ ✓ tests/cancelamento-doador.test.js > estabelecimento cancela uma doação com motivo (H5c) > registra o motivo no histórico da doação 599ms
+ ✓ tests/cancelamento-doador.test.js > estabelecimento cancela uma doação com motivo (H5c) > cancela uma doação já aceita e ela some das coletas da ONG 765ms
+ ✓ tests/cancelamento-doador.test.js > estabelecimento cancela uma doação com motivo (H5c) > exige o motivo (sem motivo) 792ms
+ ✓ tests/cancelamento-doador.test.js > estabelecimento cancela uma doação com motivo (H5c) > exige o motivo (motivo vazio) 605ms
+ ✓ tests/cancelamento-doador.test.js > estabelecimento cancela uma doação com motivo (H5c) > exige o motivo (motivo que não é texto) 649ms
+ ✓ tests/cancelamento-doador.test.js > estabelecimento cancela uma doação com motivo (H5c) > limita o tamanho do motivo 932ms
+ ✓ tests/cancelamento-doador.test.js > estabelecimento cancela uma doação com motivo (H5c) > não cancela duas vezes e não grava histórico repetido 918ms
+ ✓ tests/cancelamento-doador.test.js > estabelecimento cancela uma doação com motivo (H5c) > não cancela uma doação que já venceu 1106ms
+ ✓ tests/cancelamento-doador.test.js > estabelecimento cancela uma doação com motivo (H5c) > um doador não cancela nem vê o histórico da doação de outro 893ms
+ ✓ tests/cancelamento-doador.test.js > estabelecimento cancela uma doação com motivo (H5c) > responde 404 para id inexistente ou inválido (abc) 700ms
+ ✓ tests/cancelamento-doador.test.js > estabelecimento cancela uma doação com motivo (H5c) > responde 404 para id inexistente ou inválido (99999) 756ms
+ ✓ tests/cancelamento-doador.test.js > estabelecimento cancela uma doação com motivo (H5c) > só o perfil doador pode cancelar a publicação 856ms
+ ✓ tests/cancelamento-doador.test.js > estabelecimento cancela uma doação com motivo (H5c) > a ONG não consegue aceitar uma doação cancelada 712ms
+ ✓ tests/cancelamento-doador.test.js > minhas doações > lista só as doações do doador logado, com o status atual 999ms
+ ✓ tests/cancelamento-doador.test.js > minhas doações > é exclusiva do perfil doador 697ms
+ ✓ tests/coletas.test.js > aceitar uma doação > marca a doação como aceita pela ONG 1082ms
+ ✓ tests/coletas.test.js > aceitar uma doação > remove a doação da lista depois de aceita 801ms
+ ✓ tests/coletas.test.js > aceitar uma doação > recusa aceitar uma doação já aceita 688ms
+ ✓ tests/coletas.test.js > aceitar uma doação > aceita uma única ONG quando duas tentam simultaneamente 1144ms
+ ✓ tests/coletas.test.js > cancelar coleta > cancela a coleta e devolve a doação para a lista 692ms
+ ✓ tests/coletas.test.js > cancelar coleta > não permite cancelar coleta de outra ONG 1297ms
+ ✓ tests/coletas.test.js > cancelar coleta com observação (H4) > registra a observação no histórico e o estabelecimento a vê em minhas doações 1191ms
+ ✓ tests/coletas.test.js > cancelar coleta com observação (H4) > a observação é opcional: {} cancela e registra sem observação 772ms
+ ✓ tests/coletas.test.js > cancelar coleta com observação (H4) > a observação é opcional: {"observacao":""} cancela e registra sem observação 739ms
+ ✓ tests/coletas.test.js > cancelar coleta com observação (H4) > a observação é opcional: {"observacao":"   "} cancela e registra sem observação 682ms
+ ✓ tests/coletas.test.js > cancelar coleta com observação (H4) > a observação é opcional: {"observacao":null} cancela e registra sem observação 599ms
+ ✓ tests/coletas.test.js > cancelar coleta com observação (H4) > recusa observação inválida 0, sem mudar a doação 747ms
+ ✓ tests/coletas.test.js > cancelar coleta com observação (H4) > recusa observação inválida 1, sem mudar a doação 658ms
+ ✓ tests/coletas.test.js > cancelar coleta com observação (H4) > recusa observação inválida 2, sem mudar a doação 699ms
+ ✓ tests/coletas.test.js > cancelar coleta com observação (H4) > cancelamento recusado (coleta de outra ONG) não grava histórico 738ms
+ ✓ tests/coletas.test.js > cancelar coleta com observação (H4) > minhas doações traz ultimo_historico nulo quando nada foi registrado 773ms
+ ✓ tests/concorrencia.test.js > aceite concorrente > com 10 ONGs disputando a mesma doação, exatamente uma vence 4386ms
+ ✓ tests/concorrencia.test.js > aceite concorrente > doações diferentes podem ser aceitas em paralelo sem interferência 1764ms
+ ✓ tests/concorrencia.test.js > aceite concorrente > aceite e cancelamento simultâneos terminam num estado consistente 1023ms
+ ✓ tests/concorrencia.test.js > cadastro concorrente > o mesmo e-mail em requisições simultâneas gera uma única conta 1377ms
+ ✓ tests/auth.test.js > cadastro e login > cadastra uma ONG e autentica com senha 1395ms
+ ✓ tests/auth.test.js > cadastro e login > recusa senha incorreta e e-mail duplicado 933ms
+ ✓ tests/auth.test.js > cadastro e login > recusa e-mail fora do formato .com: email.com 585ms
+ ✓ tests/auth.test.js > cadastro e login > recusa e-mail fora do formato .com: email@dominio.org 736ms
+ ✓ tests/auth.test.js > cadastro e login > recusa e-mail fora do formato .com: email@dominio.com.br 749ms
+ ✓ tests/auth.test.js > cadastro e login > recusa e-mail fora do formato .com: email sem@dominio.com 823ms
+ ✓ tests/auth.test.js > cadastro e login > protege a API e respeita o perfil 667ms
+ ✓ tests/integracao.test.js > Cenário 1 — publicar → filtrar → aceitar → ONG cancela com observação → outra ONG aceita (H1 + H3 + H4) > a doação circula entre duas ONGs sem nunca ficar com dois donos 1603ms
+ ✓ tests/integracao.test.js > Cenário 2 — doação aceita é cancelada pelo estabelecimento com motivo (H1 + H5c + autenticação) > some das coletas da ONG, não pode ser aceita de novo e o histórico guarda o motivo 1091ms
+ ✓ tests/integracao.test.js > Cenário 3 (erro) — entradas inválidas e acessos indevidos não alteram o banco > validade impossível, perfil errado, falta de token e doação vencida são recusados 887ms
+ ✓ tests/integracao.test.js > Regressão do merge — cada rota da API é registrada uma única vez > não há método + caminho duplicado no roteador 740ms
+ ✓ tests/db.test.js > query() > converte cada ? em $n, preservando a ordem dos parâmetros 140ms
+ ✓ tests/db.test.js > query() > em consultas de escrita devolve rows vazio e a contagem de linhas alteradas 154ms
+ ✓ tests/db.test.js > query() > devolve rows com as linhas do INSERT ... RETURNING 87ms
+ ✓ tests/db.test.js > query() > rejeita SQL inválido em vez de devolver vazio 177ms
+ ✓ tests/db.test.js > query() > rejeita tipo incompatível com a coluna (por isso doacoes.js valida o id antes) 436ms
+ ✓ tests/db.test.js > query() > volta a funcionar depois de encerrar() e reabrir o pool 108ms
+ ✓ tests/db.test.js > migrar() e limparBanco() > é idempotente: rodar de novo não falha nem apaga dados 87ms
+ ✓ tests/db.test.js > migrar() e limparBanco() > cria as tabelas usuarios e doacoes 69ms
+ ✓ tests/db.test.js > migrar() e limparBanco() > registra cada migração aplicada, em ordem, em schema_migracoes 178ms
+ ✓ tests/db.test.js > migrar() e limparBanco() > as versões das migrações são únicas e crescentes 83ms
+ ✓ tests/db.test.js > migrar() e limparBanco() > migração 2: doacoes.doador_id referencia usuarios e historico_doacao existe 137ms
+ ✓ tests/db.test.js > migrar() e limparBanco() > atualiza um banco criado antes do controle de versões sem perder dados 203ms
+ ✓ tests/db.test.js > migrar() e limparBanco() > desfaz a migração que falha e não a marca como aplicada 177ms
+ ✓ tests/db.test.js > migrar() e limparBanco() > limparBanco() apaga os dados e reinicia os ids em 1 185ms
+ ✓ tests/db.test.js > migrar() e limparBanco() > usa os valores padrão do schema: status disponivel, ong nula e criada_em preenchida 111ms
+ ✓ tests/db.test.js > restrições do schema (última barreira, atrás das validações da aplicação) > e-mail é único 134ms
+ ✓ tests/db.test.js > restrições do schema (última barreira, atrás das validações da aplicação) > perfil só aceita doador ou ong 191ms
+ ✓ tests/db.test.js > restrições do schema (última barreira, atrás das validações da aplicação) > doacoes.tipo é obrigatório 127ms
+ ✓ tests/db.test.js > restrições do schema (última barreira, atrás das validações da aplicação) > doacoes.quantidade é obrigatório 95ms
+ ✓ tests/db.test.js > restrições do schema (última barreira, atrás das validações da aplicação) > doacoes.validade é obrigatório 185ms
+ ✓ tests/db.test.js > repositório > buscarUsuarioPorEmail devolve undefined quando não existe 153ms
+ ✓ tests/db.test.js > repositório > buscarPorId devolve undefined para id inexistente 82ms
+ ✓ tests/db.test.js > repositório > aceitar só altera doações disponíveis (segunda chamada devolve undefined) 86ms
+ ✓ tests/db.test.js > repositório > cancelarAceite exige que a ONG seja a mesma que aceitou 76ms
+ ✓ tests/db.test.js > repositório > marcarVencida não altera doação já aceita 116ms
+ ✓ tests/app.test.js > aplicação > responde na verificação de saúde 112ms
+
+ Test Files  11 passed (11)
+      Tests  196 passed (196)
+   Start at  21:41:40
+   Duration  157.00s (tests 92%, import 8%)
+
+ % Coverage report from v8
+-----------------|---------|----------|---------|---------|-------------------
+File             | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-----------------|---------|----------|---------|---------|-------------------
+All files        |   98.36 |    97.46 |   96.82 |   99.51 |                   
+ autenticacao.js |   97.72 |     97.5 |     100 |     100 | 12                
+ db.js           |   93.47 |    84.21 |      80 |    97.5 | 16                
+-----------------|---------|----------|---------|---------|-------------------
+
+=============================== Coverage summary ===============================
+Statements   : 98.36% ( 240/244 )
+Branches     : 97.46% ( 154/158 )
+Functions    : 96.82% ( 61/63 )
+Lines        : 99.51% ( 205/206 )
+================================================================================

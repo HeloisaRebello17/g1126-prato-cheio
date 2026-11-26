@@ -1,0 +1,41 @@
+# Execução de tests/integracao.test.js contra o src/app.js ANTERIOR à correção (commit 0addc35)
+# Esperado: o teste de regressão falha listando as 3 rotas da H5c registradas duas vezes.
+
+RUN  v5.0.1 C:/Users/Michelle/Downloads/g1126-prato-cheio
+
+ ❯ tests/integracao.test.js (4 tests | 1 failed) 3724ms
+   ❯ Regressão do merge — cada rota da API é registrada uma única vez (1)
+     × não há método + caminho duplicado no roteador 728ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  19:59:03
+   Duration  4.85s (tests 81%, import 16%, transform 3%)
+
+No C:\Program Files\nodejs\npx.ps1:29 caractere:3
+ 
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/integracao.test.js > Regressão do merge — cada rota da API é registrada uma única vez > não há método + 
+caminho duplicado no roteador
+AssertionError: expected [ 'GET /api/minhas-doacoes', …(2) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "GET /api/minhas-doacoes",
++   "POST /api/doacoes/:id/cancelar-publicacao",
++   "GET /api/doacoes/:id/historico",
++ ]
+
+ ❯ tests/integracao.test.js:136:24
+    134|       .flatMap((camada) => Object.keys(camada.route.methods).map((m) =…
+    135|     const duplicadas = rotas.filter((rota, i) => rotas.indexOf(rota) !…
+    136|     expect(duplicadas).toEqual([]);
+       |                        ^
+    137|     expect(rotas.length).toBeGreaterThanOrEqual(12);
+    138|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯

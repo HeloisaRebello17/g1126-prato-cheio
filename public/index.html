@@ -424,11 +424,19 @@
           const botao = document.createElement('button');
           botao.textContent = 'Cancelar coleta';
           botao.onclick = async () => {
+            // H4 — observação opcional; o estabelecimento a vê em "Minhas doações".
+            const observacao = prompt(
+              `Cancelar a coleta de ${coleta.tipo}?
+Observação para o estabelecimento (opcional):`,
+              ''
+            );
+            if (observacao === null) return;
             botao.disabled = true;
             try {
               const resposta = await fetch(`/api/doacoes/${coleta.id}/cancelar`, {
                 method: 'POST',
-                headers: cabecalhoAuth
+                headers: { 'Content-Type': 'application/json', ...cabecalhoAuth },
+                body: JSON.stringify({ observacao })
               });
               const dados = await resposta.json().catch(() => ({}));
               if (!resposta.ok) {
@@ -477,6 +485,13 @@
             ROTULO_STATUS[doacao.status] || doacao.status
           }`;
           li.appendChild(texto);
+          const nota = descreverUltimoHistorico(doacao);
+          if (nota) {
+            const detalhe = document.createElement('small');
+            detalhe.className = 'observacao';
+            detalhe.textContent = nota;
+            texto.appendChild(detalhe);
+          }
           if (doacao.status === 'disponivel' || doacao.status === 'aceita') {
             const botao = document.createElement('button');
             botao.textContent = 'Cancelar doação';
@@ -485,6 +500,18 @@
           }
           lista.appendChild(li);
         }
+      }
+
+      function descreverUltimoHistorico(doacao) {
+        const ultimo = doacao.ultimo_historico;
+        if (!ultimo || ultimo.status_novo !== doacao.status) return '';
+        if (ultimo.status_anterior === 'aceita' && ultimo.status_novo === 'disponivel') {
+          return ultimo.motivo
+            ? `A ONG cancelou a coleta. Observação: ${ultimo.motivo}`
+            : 'A ONG cancelou a coleta (sem observação).';
+        }
+        if (ultimo.status_novo === 'cancelada' && ultimo.motivo) return `Motivo: ${ultimo.motivo}`;
+        return '';
       }
 
       async function cancelarPublicacao(doacao, botao) {
@@ -529,9 +556,11 @@
         if (
           dataValidade.getFullYear() !== ano ||
           dataValidade.getMonth() !== mes - 1 ||
-          dataValidade.getDate() !== dia ||
-          dataValidade < inicioHoje
+          dataValidade.getDate() !== dia
         ) {
+          return 'A validade deve ser uma data válida.';
+        }
+        if (dataValidade < inicioHoje) {
           return 'A validade não pode ser anterior à data de hoje.';
         }
 
